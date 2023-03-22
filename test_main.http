@@ -8,3 +8,11 @@ GET http://127.0.0.1:8000/hello/User
 Accept: application/json
 
 ###
+POST http://127.0.0.1:8000/register/
+Content-Type: application/json
+
+{
+  "name": "test",
+  "pwd": "test",
+  "email": "a@b.de"
+}
