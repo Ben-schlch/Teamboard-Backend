@@ -25,7 +25,7 @@ async def say_hello(name: str):
 @app.post("/register/")
 async def register(user: UserBody):
     print("aaaaaaaa")
-    register_user(**user.dict())
-    return user
+    return await register_user(**user.dict())
+
 
 
