@@ -1,13 +1,45 @@
-import asyncio
-import logging
-from datetime import datetime
-
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("FastAPI app")
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
+
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>WebSocket Chat</h1>
+        <h2>Your ID: <span id="ws-id"></span></h2>
+        <form action="" onsubmit="sendMessage(event)">
+            <input type="text" id="messageText" autocomplete="off"/>
+            <button>Send</button>
+        </form>
+        <ul id='messages'>
+        </ul>
+        <script>
+            var client_id = Date.now()
+            document.querySelector("#ws-id").textContent = client_id;
+            var ws = new WebSocket(`ws://localhost:8000/ws/${client_id}`);
+            ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            };
+            function sendMessage(event) {
+                var input = document.getElementById("messageText")
+                ws.send(input.value)
+                input.value = ''
+                event.preventDefault()
+            }
+        </script>
+    </body>
+</html>
+"""
+
 
 class ConnectionManager:
     def __init__(self):
@@ -28,31 +60,22 @@ class ConnectionManager:
             await connection.send_text(message)
 
 
-async def heavy_data_processing(data: dict):
-    """Some (fake) heavy data processing logic."""
-    await asyncio.sleep(2)
-    message_processed = data.get("message", "").upper()
-    return message_processed
+manager = ConnectionManager()
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    # Accept the connection from a client.
-    await websocket.accept()
+@app.get("/")
+async def get():
+    return HTMLResponse(html)
 
-    while True:
-        try:
-            # Receive the JSON data sent by a client.
-            data = await websocket.receive_json()
-            # Some (fake) heavey data processing logic.
-            message_processed = await heavy_data_processing(data)
-            # Send JSON data to the client.
-            await websocket.send_json(
-                {
-                    "message": message_processed,
-                    "time": datetime.now().strftime("%H:%M:%S"),
-                }
-            )
-        except WebSocketDisconnect:
-            logger.info("The connection is closed.")
-            break
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: int):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.send_personal_message(f"You wrote: {data}", websocket)
+            await manager.broadcast(f"Client #{client_id} says: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client #{client_id} left the chat")
