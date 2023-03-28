@@ -1,5 +1,71 @@
 {
-  "Create/Delete/Edit": "task/Column/Subtask",
-  "name:": "test",
+  "Teamboard": "Create",
+  "name": "test",
   "position": "integer zw. 0 (erste Position) bis ..."
 }
+
+{
+  "Teamboard": "Edit/Delete",
+  "id": 2,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ..."
+},
+
+{
+  "task": "create",
+  "teamboard": 5,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ...",
+  "...."
+},
+
+{
+  "task": "edit/delete",
+  "teamboard": id,
+  "id": 1,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ...",
+  "...."
+},
+
+{
+  "column": "create",
+  "teamboard": id,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ...",
+  "...."
+},
+
+{
+  "column": "edit/delete",
+  "teamboard": id,
+  "id": 1,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ...",
+  "...."
+},
+
+{
+  "subtask": "create",
+  "teamboard": 3,
+  "column": 4,
+  "name": "test",
+  "position": "integer zw. 0 (erste Position) bis ...",
+  "priority": 3,
+  "color": "HEX:#eb4034",
+  "Tags": [
+    "Important",
+    "Test"
+  ]
+},
+
+{
+  "subtask": "edit/delete",
+  "teamboard": 3,
+  "column": 4,
+  "name": "test",
+  "newname": "test2",
+
+}
+
+
