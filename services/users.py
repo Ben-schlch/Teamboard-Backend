@@ -21,7 +21,10 @@ async def register_user(name, email, pwd, profilepicture=None):
 
 async def login_user(email: str, pwd: str):
     # There will be only one result because the mail attribute is the PRIMARY KEY
-    res = select_query("users", ["pwd"], f"mail = '{email}'")[0]
+    try:
+        res = select_query("users", ["pwd"], f"mail = '{email}'")[0]
+    except IndexError as e:
+        return False
     if type(res) is int:
         return False
     return check_pw(pwd, res["pwd"])

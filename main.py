@@ -12,12 +12,6 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
-
-
-
-
-
-
 # Secret key used to sign JWT tokens
 SECRET_KEY = "mysecretkey"
 # Time in minutes before JWT token expires
