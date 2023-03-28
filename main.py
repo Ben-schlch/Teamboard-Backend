@@ -28,8 +28,8 @@ security = HTTPBearer()
 # Function to generate JWT token
 def generate_token(email: str, password: str):
     #TODO CHeck login:
-    #login_user(email,pw)
-    if user:
+    
+    if login_user(email, password):
         expiration_time = time.time() + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
         token = jwt.encode({"sub": user["email"], "exp": expiration_time}, SECRET_KEY, algorithm=ALGORITHM)
         return token
