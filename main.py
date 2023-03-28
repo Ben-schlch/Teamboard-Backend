@@ -1,5 +1,7 @@
+from pydantic import BaseModel
+from services.users import register_user, login_user
 from fastapi.responses import HTMLResponse
-from fastapi import FastAPI, WebSocket, Depends, HTTPException, status, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, Depends, HTTPException, status, WebSocketDisconnect, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import logging
@@ -7,9 +9,13 @@ import time
 from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("websocket fastapi")
 
 app = FastAPI()
+
+
+
+
+
 
 
 # Secret key used to sign JWT tokens
@@ -100,6 +106,39 @@ def get_token(email: str, password: str):
     return {"token": generate_token(email, password)}
 
 
+class UserBody(BaseModel):
+    name: str
+    email: str
+    pwd: str
 
 
+class Credentials(BaseModel):
+    email: str
+    pwd: str
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
+@app.get("/hello/{name}", status_code=200)
+async def say_hello(name: str):
+    print("test123")
+    return {"message": f"Hello {name}"}
+
+
+@app.post("/register/")
+async def register(user: UserBody):
+    print("aaaaaaaa")
+    return await register_user(**user.dict())
+
+
+@app.post("/login/")
+async def login(creds: Credentials, response: Response):
+    if await login_user(**creds.dict()):
+        response.status_code = 200
+    else:
+        response.status_code = 401
+    return {"message": "AAAAAAAAAAA"}
 
