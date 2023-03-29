@@ -1,11 +1,22 @@
 from services.db import insert_query, select_query
 from services.passwords import hash_and_salt, check_pw
 from services.emails import send_email
-import psycopg2
 from fastapi import HTTPException
+from pydantic import BaseModel
 
 
-async def register_user(name, email, pwd, profilepicture=None):
+class UserBody(BaseModel):
+    name: str
+    email: str
+    pwd: str
+
+
+class Credentials(BaseModel):
+    email: str
+    pwd: str
+
+
+async def register_user(name, email, pwd):
     salt, pwd = hash_and_salt(pwd)
     res = insert_query("users",
                        ['username', 'mail', 'pwd', 'salt'],
@@ -24,7 +35,7 @@ async def login_user(email: str, pwd: str):
     # There will be only one result because the mail attribute is the PRIMARY KEY
     try:
         res = select_query("users", ["pwd"], f"mail = '{email}'")[0]
-    except IndexError as e:
+    except IndexError:
         return False
     if type(res) is int:
         return False
