@@ -18,14 +18,26 @@ SECRET_KEY = "mysecretkey"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Security scheme to handle JWT tokens
 security = HTTPBearer()
+# Algorithm to generate the jwt token
+ALGORITHM = "HS256"
+
+
+class UserBody(BaseModel):
+    name: str
+    email: str
+    pwd: str
+
+
+class Credentials(BaseModel):
+    email: str
+    pwd: str
+
 
 # Function to generate JWT token
-def generate_token(email: str, password: str):
-    #TODO CHeck login:
-    
-    if login_user(email, password):
+def generate_token(email: str, pwd: str):
+    if login_user(email, pwd):
         expiration_time = time.time() + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
-        token = jwt.encode({"sub": user["email"], "exp": expiration_time}, SECRET_KEY, algorithm=ALGORITHM)
+        token = jwt.encode({"sub": email, "exp": expiration_time}, SECRET_KEY, algorithm=ALGORITHM)
         return token
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
@@ -96,19 +108,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
 # Define an HTTP endpoint that generates a JWT token given an email and password
 @app.post("/token")
-def get_token(email: str, password: str):
-    return {"token": generate_token(email, password)}
-
-
-class UserBody(BaseModel):
-    name: str
-    email: str
-    pwd: str
-
-
-class Credentials(BaseModel):
-    email: str
-    pwd: str
+def get_token(creds: Credentials):
+    return {"token": generate_token(**creds.dict())}
 
 
 @app.get("/")
