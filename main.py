@@ -1,12 +1,10 @@
 from pydantic import BaseModel
 from services.users import register_user, login_user
-from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, WebSocket, Depends, HTTPException, status, WebSocketDisconnect, Response
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 import jwt
 import logging
 import time
-from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,14 +40,16 @@ async def generate_token(email: str, pwd: str):
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
+
 async def parse_message(data: dict):
     """Check the message from client"""
-    #TODO: JSON Format -->
+    # TODO: JSON Format -->
     return 0
+
 
 def verify_token(token: str):
     """
-    erify a JWT token and return its payload
+    verify a JWT token and return its payload
     @param token:
     @return:
     """
@@ -60,10 +60,10 @@ def verify_token(token: str):
         if expiration_time is not None and time.time() > expiration_time:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
         return email
-    except jwt.exceptions.DecodeError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     except jwt.exceptions.InvalidSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token signature")
+    except jwt.exceptions.DecodeError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
 async def send_personal_message(message: str, websocket: WebSocket):
@@ -89,9 +89,10 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+
 # Define a WebSocket endpoint that requires JWT token authentication
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str):
+async def websocket_endpoint(websocket: WebSocket, token: str = Depends(security)):
     email = verify_token(token)
 
     # Handle WebSocket connection
@@ -106,6 +107,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         manager.disconnect(websocket)
         await manager.broadcast(f"Client #{email} left the chat")
 
+
 # Define an HTTP endpoint that generates a JWT token given an email and password
 @app.post("/token")
 async def get_token(creds: Credentials):
@@ -117,23 +119,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/hello/{name}", status_code=200)
-async def say_hello(name: str):
-    print("test123")
-    return {"message": f"Hello {name}"}
-
-
 @app.post("/register/")
-async def register(user: UserBody):
-    print("aaaaaaaa")
-    return await register_user(**user.dict())
-
-
-@app.post("/login/")
-async def login(creds: Credentials, response: Response):
-    if await login_user(**creds.dict()):
-        response.status_code = 200
-    else:
-        response.status_code = 401
-    return {"message": "AAAAAAAAAAA"}
+async def register(user: UserBody, response: Response):
+    return register_user(**user.dict())
 
