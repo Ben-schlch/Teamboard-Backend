@@ -34,8 +34,8 @@ class Credentials(BaseModel):
 
 
 # Function to generate JWT token
-def generate_token(email: str, pwd: str):
-    if login_user(email, pwd):
+async def generate_token(email: str, pwd: str):
+    if await login_user(email, pwd):
         expiration_time = time.time() + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
         token = jwt.encode({"sub": email, "exp": expiration_time}, SECRET_KEY, algorithm=ALGORITHM)
         return token
@@ -108,8 +108,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
 # Define an HTTP endpoint that generates a JWT token given an email and password
 @app.post("/token")
-def get_token(creds: Credentials):
-    return {"token": generate_token(**creds.dict())}
+async def get_token(creds: Credentials):
+    return {"token": await generate_token(**creds.dict())}
 
 
 @app.get("/")
