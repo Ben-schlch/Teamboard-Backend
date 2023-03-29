@@ -8,8 +8,8 @@ from fastapi import HTTPException
 async def register_user(name, email, pwd, profilepicture=None):
     salt, pwd = hash_and_salt(pwd)
     res = insert_query("users",
-                       ['username', 'mail', 'pwd', 'verified', 'profilepicture'],
-                       [name, email, pwd, False, profilepicture])
+                       ['username', 'mail', 'pwd', 'salt'],
+                       [name, email, pwd, salt])
     if res:
         # unique violation --> email adr ist bereits in der Datenbank
         if res == 23505:

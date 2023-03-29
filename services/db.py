@@ -76,4 +76,3 @@ def select_query(table: str, columns: list[str], condition: str) -> int or list:
             return res_mapped
     except psycopg2.Error as err:
         return int(err.pgcode)
-

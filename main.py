@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from services.users import register_user, login_user
-from fastapi import FastAPI, WebSocket, Depends, HTTPException, status, WebSocketDisconnect, Response
-from fastapi.security import HTTPBearer
+from fastapi import FastAPI, WebSocket, status, WebSocketDisconnect, HTTPException
 import jwt
 import logging
 import time
@@ -14,8 +13,6 @@ app = FastAPI()
 SECRET_KEY = "mysecretkey"
 # Time in minutes before JWT token expires
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-# Security scheme to handle JWT tokens
-security = HTTPBearer()
 # Algorithm to generate the jwt token
 ALGORITHM = "HS256"
 
@@ -54,13 +51,14 @@ def verify_token(token: str):
     @return:
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         email = payload["sub"]
         expiration_time = payload.get("exp", None)
         if expiration_time is not None and time.time() > expiration_time:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
         return email
-    except jwt.exceptions.InvalidSignatureError:
+    except jwt.exceptions.InvalidSignatureError as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token signature")
     except jwt.exceptions.DecodeError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -92,20 +90,26 @@ manager = ConnectionManager()
 
 # Define a WebSocket endpoint that requires JWT token authentication
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = Depends(security)):
-    email = verify_token(token)
-
-    # Handle WebSocket connection
-    await manager.connect(websocket)
-    await websocket.send_text(f"Welcome, {email}!")
+async def websocket_endpoint(websocket: WebSocket):
     try:
-        while True:
-            data = await websocket.receive_text()
-            await send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{email} says: {data}")
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{email} left the chat")
+        token = websocket.headers['token']
+        email = verify_token(token)
+    except KeyError:
+        await websocket.close(code=401, reason="Token missing")
+    except HTTPException:
+        await websocket.close(code=401, reason="Token value is wrong")
+    else:
+        # Handle WebSocket connection
+        await manager.connect(websocket)
+        await websocket.send_text(f"Welcome, {email}!")
+        try:
+            while True:
+                data = await websocket.receive_text()
+                await send_personal_message(f"You wrote: {data}", websocket)
+                await manager.broadcast(f"Client #{email} says: {data}")
+        except WebSocketDisconnect:
+            manager.disconnect(websocket)
+            await manager.broadcast(f"Client #{email} left the chat")
 
 
 # Define an HTTP endpoint that generates a JWT token given an email and password
@@ -120,6 +124,12 @@ async def root():
 
 
 @app.post("/register/")
-async def register(user: UserBody, response: Response):
-    return register_user(**user.dict())
+async def register(user: UserBody):
+    return await register_user(**user.dict())
 
+
+# # debug:
+# import uvicorn
+#
+# if __name__ == "__main__":
+#     uvicorn.run(app, host="127.0.0.1", port=8000)
