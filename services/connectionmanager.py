@@ -25,7 +25,7 @@ class ConnectionManager:
         self.active_connections.remove(item)
 
     async def broadcast(self, message: str, teamboard: int):
-        editors = select_query("teamboard_editors", "editor",  f"teamboard = '{teamboard}'" )
+        editors = select_query("teamboard_editors", ["editor"],  f"teamboard = '{teamboard}'")
         for connection in [item for item in self.active_connections if item[1] in editors]:
             await connection[0].send_text(message)
 

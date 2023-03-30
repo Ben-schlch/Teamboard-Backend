@@ -25,13 +25,14 @@ CREATE TABLE task
 part_of_teamboard integer,
 	FOREIGN KEY(part_of_teamboard) references teamboard ON DELETE CASCADE ON UPDATE CASCADE,
 task_name varchar(320) NOT NULL,
+task_id SERIAL,
 
 u_neighbor varchar(320) DEFAULT NULL,
 	FOREIGN KEY (part_of_teamboard, u_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
 l_neighbor varchar(320) DEFAULT NULL,
 	FOREIGN KEY (part_of_teamboard, l_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
 
-Primary Key (part_of_teamboard, task_name)
+Primary Key (part_of_teamboard, task_id)
 );
 
 
@@ -41,13 +42,14 @@ part_of_teamboard integer NOT NULL,
 part_of_task varchar(320) NOT NULL,
 	FOREIGN KEY(part_of_teamboard, part_of_task) references task ON DELETE CASCADE ON UPDATE CASCADE,
 name_of_column varchar(320) NOT NULL,
+column_id SERIAL,
 
 l_neighbor varchar(320) DEFAULT NULL,
 	FOREIGN KEY (part_of_teamboard, part_of_task, l_neighbor) references task_column ON DELETE CASCADE ON UPDATE CASCADE,
 r_neighbor varchar(320) DEFAULT NULL,
 	FOREIGN KEY (part_of_teamboard, part_of_task, r_neighbor) references task_column ON DELETE CASCADE ON UPDATE CASCADE,
 
-PRIMARY KEY(part_of_teamboard, part_of_task, name_of_column)
+PRIMARY KEY(part_of_teamboard, part_of_task, column_id)
 );
 
 

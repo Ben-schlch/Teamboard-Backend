@@ -10,42 +10,51 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 
 
-async def parse_message(websocket: WebSocket, data: dict):
+async def parse_message(websocket: WebSocket, data: dict, email: str):
+    kind_of_object = "ObjectError"
+    type_of_edit = "EditError"
     try:
         kind_of_object = data["kind_of_object"]
         type_of_edit = data["type_of_edit"]
-        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask] +[edit, create, delete, (move, load)]
-            case "teamboardelete:":
-                await boardedit.teamboardelete(data)
-            case "teamboardcreate:":
-                await boardedit.teamboardcreate(data)
-            case "teamboardedit:":
-                await boardedit.teamboardedit(data)
-            case "taskdelete:":
-                await boardedit.taskdelete()
-            case "taskcreate:":
-                await boardedit.taskcreate()
-            case "taskedit:":
-                await boardedit.taskedit()
-            case "columndelete:":
-                await boardedit.columndelete()
-            case "columncreate:":
-                await boardedit.columncreate()
-            case "columnedit:":
-                await boardedit.columnedit()
-            case "subtaskcreate:":
-                await boardedit.subtaskcreate()
-            case "subtaskedit:":
-                await boardedit.subtaskedit()
-            case "subtaskdelete:":
-                await boardedit.subtaskdelete()
-            case "subtaskmove:":
-                await boardedit.subtaskmove(data)
-            case "columnmove:":
-                await boardedit.columnmove(data)
-            case "teamboardload":
-                await boardedit.teamboardload(data)
-            case _: raise HTTPException(403)
+        boardid = data["teamboard"]
+        if boardedit.is_teamboardeditor(boardid, email):
+            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+                case "teamboardelete:":
+                    await boardedit.teamboarddelete(data, email)
+                case "teamboardedit:":
+                    await boardedit.teamboardedit(data)
+                case "taskdelete:":
+                    await boardedit.taskdelete()
+                case "taskcreate:":
+                    await boardedit.taskcreate()
+                case "taskedit:":
+                    await boardedit.taskedit()
+                case "columndelete:":
+                    await boardedit.columndelete()
+                case "columncreate:":
+                    await boardedit.columncreate()
+                case "columnedit:":
+                    await boardedit.columnedit()
+                case "subtaskcreate:":
+                    await boardedit.subtaskcreate()
+                case "subtaskedit:":
+                    await boardedit.subtaskedit()
+                case "subtaskdelete:":
+                    await boardedit.subtaskdelete()
+                case "subtaskmove:":
+                    await boardedit.subtaskmove(data)
+                case "columnmove:":
+                    await boardedit.columnmove(data)
+                case _:
+                    raise HTTPException(403)
+        else:
+            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+                case "teamboardload":
+                    await boardedit.teamboardload(email)
+                case "teamboardcreate:":
+                    await boardedit.teamboardcreate(data, email)
+                case _:
+                    raise HTTPException(403)
     except Exception:
         print("Exception!")
         await manager.send_personal_message(f"403 {kind_of_object} {type_of_edit}", websocket)
