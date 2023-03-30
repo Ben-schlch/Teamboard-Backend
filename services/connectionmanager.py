@@ -1,6 +1,7 @@
 from fastapi import WebSocket, HTTPException, status
 import jwt
 from users import login_user
+from db import select_query
 import time
 
 # Secret key used to sign JWT tokens
@@ -13,18 +14,20 @@ ALGORITHM = "HS256"
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: list[WebSocket] = []
+        self.active_connections: list[(WebSocket, str)] = []
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, email: str):
         await websocket.accept()
-        self.active_connections.append(websocket)
+        self.active_connections.append((websocket, email))
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        item = [item for item in self.active_connections if item[0] == websocket][0]
+        self.active_connections.remove(item)
 
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
+    async def broadcast(self, message: str, teamboard: int):
+        editors = select_query("teamboard_editors", "editor",  f"teamboard = '{teamboard}'" )
+        for connection in [item for item in self.active_connections if item[1] in editors]:
+            await connection[0].send_text(message)
 
     @staticmethod
     async def send_personal_message(message: str, websocket: WebSocket):

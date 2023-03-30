@@ -2,16 +2,53 @@ from services.users import register_user, UserBody, Credentials
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 import logging
+import services.boardedit as boardedit
+import json
 
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
 
-async def parse_message(data: dict):
-    """Check the message from client"""
-    # TODO: JSON Format -->
-    return 0
+async def parse_message(websocket: WebSocket, data: dict):
+    try:
+        kind_of_object = data["kind_of_object"]
+        type_of_edit = data["type_of_edit"]
+        match kind_of_object + type_of_edit:  # [task, column, subtask] +[edit, create, delete, move]
+            case "taskdelete:":
+                await boardedit.taskdelete()
+            case "taskcreate:":
+                await boardedit.taskcreate()
+            case "taskedit:":
+                await boardedit.taskedit()
+            case "columndelete:":
+                await boardedit.columndelete()
+            case "columncreate:":
+                await boardedit.columncreate()
+            case "columnedit:":
+                await boardedit.boardedit()
+            case "subtaskcreate:":
+                await boardedit.subtaskcreate()
+            case "subtaskedit:":
+                await boardedit.subtaskedit()
+            case "subtaskdelete:":
+                await boardedit.subtaskdelete()
+            case "subtaskmove:":
+                await boardedit.subtaskmove(data)
+            case "columnmove:":
+                await boardedit.columnmove(data)
+            case "allboards":
+                await boardedit.allboards(data)
+            case _: raise HTTPException(403)
+    except Exception:
+        print("Exception!")
+        await manager.send_personal_message(f"403 {kind_of_object} {type_of_edit}", websocket)
+
+    else:
+        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+        jsoned = json.dumps(data)
+        await manager.broadcast(teamboard=int(data["teamboard"]), message=jsoned)
+
 
 manager = ConnectionManager()
 
@@ -28,7 +65,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=401, reason="Token value is wrong")
     else:
         # Handle WebSocket connection
-        await manager.connect(websocket)
+        await manager.connect(websocket, email)
         await websocket.send_text(f"Welcome, {email}!")
         try:
             while True:
