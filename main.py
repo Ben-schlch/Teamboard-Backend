@@ -14,7 +14,13 @@ async def parse_message(websocket: WebSocket, data: dict):
     try:
         kind_of_object = data["kind_of_object"]
         type_of_edit = data["type_of_edit"]
-        match kind_of_object + type_of_edit:  # [task, column, subtask] +[edit, create, delete, move]
+        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask] +[edit, create, delete, (move, load)]
+            case "teamboardelete:":
+                await boardedit.teamboardelete(data)
+            case "teamboardcreate:":
+                await boardedit.teamboardcreate(data)
+            case "teamboardedit:":
+                await boardedit.teamboardedit(data)
             case "taskdelete:":
                 await boardedit.taskdelete()
             case "taskcreate:":
@@ -26,7 +32,7 @@ async def parse_message(websocket: WebSocket, data: dict):
             case "columncreate:":
                 await boardedit.columncreate()
             case "columnedit:":
-                await boardedit.boardedit()
+                await boardedit.columnedit()
             case "subtaskcreate:":
                 await boardedit.subtaskcreate()
             case "subtaskedit:":
@@ -37,8 +43,8 @@ async def parse_message(websocket: WebSocket, data: dict):
                 await boardedit.subtaskmove(data)
             case "columnmove:":
                 await boardedit.columnmove(data)
-            case "allboards":
-                await boardedit.allboards(data)
+            case "teamboardload":
+                await boardedit.teamboardload(data)
             case _: raise HTTPException(403)
     except Exception:
         print("Exception!")

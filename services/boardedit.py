@@ -1,7 +1,3 @@
-async def createtask():
-    return
-
-
 def taskdelete():
     return None
 
@@ -22,11 +18,15 @@ def columncreate():
     return None
 
 
-def subtaskcreate():
+def columnmove(data):
     return None
 
 
-def boardedit():
+def columnedit():
+    return None
+
+
+def subtaskcreate():
     return None
 
 
@@ -42,9 +42,17 @@ def subtaskmove(data):
     return None
 
 
-def columnmove(data):
+def teamboarddelete(data):
     return None
 
 
-def allboards(data):
+def teamboardcreate(data):
+    return None
+
+
+def teamboardedit(data):
+    return None
+
+
+def teamboardload(data):
     return None
