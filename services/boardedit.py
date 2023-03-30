@@ -65,8 +65,8 @@ async def taskcreate(data):
     task_id = data["task"]
     task_name = data["name"]
 
-    sql = 'INSERT INTO task (part_of_teamboard, ,task_name) VALUES (%s);' \
-    values = [(data["name"], data["teamboard"]), (data["teamboard"], email)]
+    sql = 'INSERT INTO task (part_of_teamboard, task_id, task_name) VALUES (%s);'
+    values = [(data["teamboard"], data["task"]), (data["name"])]
     try:
         with db.connect() as con:
             cur = con.cursor()
@@ -74,7 +74,6 @@ async def taskcreate(data):
     except psycopg2.DatabaseError as err:
         return int(err.pgcode)
     return True
-    return None
 
 
 async def taskdelete():
