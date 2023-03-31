@@ -25,23 +25,23 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "teamboardedit:":
                     await boardedit.teamboardedit(data)
                 case "taskdelete:":
-                    await boardedit.taskdelete()
+                    await boardedit.taskdelete(data)
                 case "taskcreate:":
-                    await boardedit.taskcreate()
+                    await boardedit.taskcreate(data)
                 case "taskedit:":
-                    await boardedit.taskedit()
+                    await boardedit.taskedit(data)
                 case "columndelete:":
-                    await boardedit.columndelete()
+                    await boardedit.columndelete(data)
                 case "columncreate:":
-                    await boardedit.columncreate()
+                    await boardedit.columncreate(data)
                 case "columnedit:":
-                    await boardedit.columnedit()
+                    await boardedit.columnedit(data)
                 case "subtaskcreate:":
-                    await boardedit.subtaskcreate()
+                    await boardedit.subtaskcreate(data)
                 case "subtaskedit:":
-                    await boardedit.subtaskedit()
+                    await boardedit.subtaskedit(data)
                 case "subtaskdelete:":
-                    await boardedit.subtaskdelete()
+                    await boardedit.subtaskdelete(data)
                 case "subtaskmove:":
                     await boardedit.subtaskmove(data)
                 case "columnmove:":
@@ -70,10 +70,9 @@ manager = ConnectionManager()
 
 
 # Define a WebSocket endpoint that requires JWT token authentication
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
-        token = websocket.headers['token']
         email = verify_token(token)
     except KeyError:
         await websocket.close(code=401, reason="Token missing")
@@ -94,7 +93,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 # Define an HTTP endpoint that generates a JWT token given an email and password
-@app.post("/token")
+@app.post("/login")
 async def get_token(creds: Credentials):
     return {"token": await generate_token(**creds.dict())}
 
@@ -109,7 +108,7 @@ async def register(user: UserBody):
     return await register_user(**user.dict())
 
 # # debug:
-# import uvicorn
-#
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="127.0.0.1", port=8000)
+import uvicorn
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)

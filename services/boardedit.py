@@ -1,5 +1,5 @@
 import psycopg2
-import db
+import services.db as db
 
 
 async def teamboardload(email):
@@ -66,7 +66,7 @@ async def taskcreate(data):
     task_name = data["name"]
 
     sql = 'INSERT INTO task (part_of_teamboard, task_id, task_name) VALUES (%s);'
-    values = [(data["teamboard"], data["task"]), (data["name"])]
+    values = (data["teamboard"], data["task"], data["name"])
     try:
         with db.connect() as con:
             cur = con.cursor()
@@ -76,12 +76,32 @@ async def taskcreate(data):
     return True
 
 
-async def taskdelete():
-    return None
+async def taskdelete(data):
+    teamboard_id = data["teamboard"]
+    task_id = data["task"]
+    sql = 'DELETE FROM task where  task_id = %s and part_of_teamboard = %s;'
+    try:
+        with db.connect() as con:
+            cur = con.cursor()
+            cur.execute(sql, (task_id, teamboard_id))
+    except psycopg2.DatabaseError as err:
+        return int(err.pgcode)
+    return True
 
 
-async def taskedit():
-    return None
+async def taskedit(data):
+    teamboard_id = data["teamboard"]
+    task_id = data["task"]
+    task_name = data["name"]
+    sql = 'UPDATE task set task_name = %s WHERE part_of_teamboard = %s and ;'
+    values = [data["name"], teamboard_id]
+    try:
+        with db.connect() as con:
+            cur = con.cursor()
+            cur.execute(sql, values)
+    except psycopg2.DatabaseError as err:
+        return int(err.pgcode)
+    return True
 
 
 async def columndelete():

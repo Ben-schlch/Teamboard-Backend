@@ -1,7 +1,7 @@
 from fastapi import WebSocket, HTTPException, status
 import jwt
-from users import login_user
-from db import select_query
+from services.users import login_user
+from services.db import select_query
 import time
 
 # Secret key used to sign JWT tokens

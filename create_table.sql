@@ -66,6 +66,7 @@ created date NOT NULL,
 deadline date,
 color varchar(20),
 description varchar,
+worker varchar(320) references users(mail) ON DELETE CASCADE ON UPDATE CASCADE,
 priority integer DEFAULT 1,
 	check (priority BETWEEN 0 and 100),
 
@@ -94,13 +95,3 @@ subtask_id integer,
 	FOREIGN KEY (teamboard_id, task_id, column_id, subtask_id) references subtask ON DELETE CASCADE ON UPDATE CASCADE,
 tag_name varchar(320) references tag(tag_name) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-CREATE TABLE does_subtask
-(
-teamboard_id integer,
-task_id integer,
-column_id integer,
-subtask_id integer,
-	FOREIGN KEY (teamboard_id, task_id, column_id, subtask_id) references subtask ON DELETE CASCADE ON UPDATE CASCADE,
-user_id varchar(320) references users(mail) ON DELETE CASCADE ON UPDATE CASCADE
-)
