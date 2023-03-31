@@ -61,12 +61,12 @@ def select_query(table: str, columns: list[str], condition: str) -> int or list:
     """
 
     columns_str = ", ".join(columns)
-    sql = f"SELECT {columns_str} FROM {table} WHERE {condition};"
+    sql = "SELECT %s FROM %s WHERE %s;"
 
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql)
+            cur.execute(sql, [columns_str, table, condition])
             res = cur.fetchall()
             # creates a mapping of the selected columns to the values
             # There might be multiple vals per column -> iterate over all the results
