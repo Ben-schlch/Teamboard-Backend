@@ -20,7 +20,7 @@ def insert_query(table: str, rows: list, values: list) -> int:
     :param table: The table that the query should be executed on
     :param rows: The rows that values should be inserted to
     :param values: The values that should be inserted into the rows.
-    the number of values has to be the same as the number of rows
+    :param values: the number of values has to be the same as the number of rows
     :return: 0 if the query was successful, an error code if not
     """
     rows_sql = ", ".join(rows)
