@@ -108,7 +108,7 @@ async def register(user: UserBody):
     return await register_user(**user.dict())
 
 # # debug:
-import uvicorn
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+#import uvicorn
+#
+#if __name__ == "__main__":
+#    uvicorn.run(app, host="127.0.0.1", port=8000)

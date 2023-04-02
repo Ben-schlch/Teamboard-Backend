@@ -26,11 +26,11 @@ def insert_query(table: str, rows: list, values: list) -> int:
     rows_sql = ", ".join(rows)
     values_sql = [f"'{val}'" if val else 'NULL' for val in values]
     values_sql = ", ".join(values_sql)
-    sql = f"INSERT INTO {table}({rows_sql}) VALUES({values_sql});"
+    sql = f"INSERT INTO %s (%s) VALUES(%s);"
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql)
+            cur.execute(sql, (table, rows_sql, values_sql))
     except psycopg2.DatabaseError as err:
         return int(err.pgcode)
     return 0
@@ -42,10 +42,11 @@ def arbitrary_query(sql: str) -> int:
     :param sql: sql-query
     :return: 0 if successful, error code if not successful
     """
+    sql_query = "%s;"
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql)
+            cur.execute(sql, [sql_query])
     except psycopg2.Error as err:
         return int(err.pgcode)
     return 0
