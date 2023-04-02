@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
 
@@ -28,7 +28,7 @@ async def teamboardcreate(data, email):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, values)
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -39,7 +39,7 @@ async def teamboarddelete(data, email):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, data["teamboard"])
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -52,7 +52,7 @@ async def teamboardedit(data, email):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, values)
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -68,7 +68,7 @@ async def taskcreate(data):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, values)
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -81,7 +81,7 @@ async def taskdelete(data):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, (task_id, teamboard_id))
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -96,7 +96,7 @@ async def taskedit(data):
         with db.connect() as con:
             cur = con.cursor()
             cur.execute(sql, values)
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -127,7 +127,7 @@ async def columndelete(data: dict):
             cur.execute(sql, (right_neighbor, teamboard_id, task_id, left_neighbor,
                               left_neighbor, teamboard_id, task_id, right_neighbor,
                               colum_id, task_id, teamboard_id))
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return True
 
@@ -218,10 +218,10 @@ async def subtaskedit(data):
     edit_columns = tuple(edit_columns)
 
     # noinspection StrFormat
-    sql = psycopg2.sql.SQL('UPDATE subtask set {here} '
+    sql = psycopg.sql.SQL('UPDATE subtask set {here} '
                            'WHERE teamboard_id = %s and task_id = %s and column_id = %s and subtask_id = %s;').format(
-        here=psycopg2.sql.SQL(', ').join(
-            psycopg2.sql.identifier(col) + psycopg2.sql.SQL(' = %s') for col in edit_columns))
+        here=psycopg.sql.SQL(', ').join(
+            psycopg.sql.identifier(col) + psycopg.sql.SQL(' = %s') for col in edit_columns))
 
     with db.connect() as con:
         cur = con.cursor()

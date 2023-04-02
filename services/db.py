@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg
 import os
 
 
@@ -7,7 +7,7 @@ def connect():
     Connect to the teamboard database. Choice of Database might be enabled in the future
     :return: Connection to the database
     """
-    conn = psycopg2.connect(host="localhost",
+    conn = psycopg.connect(host="localhost",
                             database="teamboard",
                             user="postgres",
                             password=os.getenv("pgsqlpw"))
@@ -31,7 +31,7 @@ def insert_query(table: str, rows: list, values: list) -> int:
         with connect() as con:
             cur = con.cursor()
             cur.execute(sql, (table, rows_sql, values_sql))
-    except psycopg2.DatabaseError as err:
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return 0
 
@@ -47,7 +47,7 @@ def arbitrary_query(sql: str) -> int:
         with connect() as con:
             cur = con.cursor()
             cur.execute(sql, [sql_query])
-    except psycopg2.Error as err:
+    except psycopg.Error as err:
         return int(err.pgcode)
     return 0
 
@@ -75,5 +75,5 @@ def select_query(table: str, columns: list[str], condition: str) -> int or list:
             # while the values are delivered in the same order they were queried
             res_mapped = [{f"{col}": f"{val}" for col, val in zip(columns, vals)} for vals in res]
             return res_mapped
-    except psycopg2.Error as err:
+    except psycopg.Error as err:
         return int(err.pgcode)
