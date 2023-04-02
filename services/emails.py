@@ -1,9 +1,11 @@
-import smtplib, ssl
 import os
+import smtplib
+import ssl
+
 
 port_email = 465  # For SSL
-password_email = os.getenv("emailpw")
-gmail_adress = os.getenv("email")
+password_email = os.getenv("gmailapppw")
+gmail_adress = os.getenv("gmailprojadress")
 
 # Create a secure SSL context
 context = ssl.create_default_context()
