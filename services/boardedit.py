@@ -242,4 +242,9 @@ async def subtaskdelete(data):
 
 
 def subtaskmove(data):
-    return None
+    teamboard_id = data["teamboard"]
+    task_id = data["task"]
+    column_id = data["column"]
+    subtask_id = data["subtask"]
+    newposition = data["newPosition"]
+    return positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
