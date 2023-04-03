@@ -8,9 +8,9 @@ def connect():
     :return: Connection to the database
     """
     conn = psycopg.connect(host="localhost",
-                            dbname="teamboard",
-                            user="postgres",
-                            password=os.getenv("pgsqlpw"))
+                           dbname="teamboard",
+                           user="postgres",
+                           password=os.getenv("pgsqlpw"))
     return conn
 
 

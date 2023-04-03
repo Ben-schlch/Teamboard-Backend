@@ -14,7 +14,7 @@ Content-Type: application/json
 {
   "name": "test",
   "pwd": "test",
-  "email": "inf21012@lehre.dhbw-stuttgart.de"
+  "email": "a@b.de"
 }
 
 ###
