@@ -8,31 +8,25 @@ def connect():
     :return: Connection to the database
     """
     conn = psycopg.connect(host="localhost",
-                            database="teamboard",
+                            dbname="teamboard",
                             user="postgres",
                             password=os.getenv("pgsqlpw"))
     return conn
 
 
-def insert_query(table: str, rows: list, values: list) -> int:
+def insert_query(sql: str, params: tuple[any, ...]) -> int:
     """
     Function that executes an insert query on the teamboard database.
-    :param table: The table that the query should be executed on
-    :param rows: The rows that values should be inserted to
-    :param values: The values that should be inserted into the rows.
-    :param values: the number of values has to be the same as the number of rows
-    :return: 0 if the query was successful, an error code if not
+    :param sql: sql-query
+    :param params: Parameters for the query
     """
-    rows_sql = ", ".join(rows)
-    values_sql = [f"'{val}'" if val else 'NULL' for val in values]
-    values_sql = ", ".join(values_sql)
-    sql = f"INSERT INTO %s (%s) VALUES(%s);"
+
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql, (table, rows_sql, values_sql))
+            cur.execute(sql, params)
     except psycopg.DatabaseError as err:
-        return int(err.pgcode)
+        return int(err.args[0])
     return 0
 
 

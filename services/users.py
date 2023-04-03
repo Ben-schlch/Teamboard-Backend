@@ -28,9 +28,9 @@ async def register_user(name: str, email: str, pwd: str):
     # TODO: catch non-valid emails and raise exceptions
     # TODO: look if the email is already in use before sending a confirmation email
     salt, pwd = hash_and_salt(pwd)
-    res = insert_query("users",
-                       ['username', 'mail', 'pwd', 'salt'],
-                       [name, email, pwd, salt])
+    res = insert_query("""INSERT INTO users (username, mail, pwd, salt)
+                       VALUES (%s, %s, %s, %s)""",
+                       (name, email, pwd, salt))
     if res:
         # unique violation --> email adr ist bereits in der Datenbank
         if res == 23505:
