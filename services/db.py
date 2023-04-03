@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg
 import os
 
 
@@ -7,7 +7,7 @@ def connect():
     Connect to the teamboard database. Choice of Database might be enabled in the future
     :return: Connection to the database
     """
-    conn = psycopg2.connect(host="localhost",
+    conn = psycopg.connect(host="localhost",
                             database="teamboard",
                             user="postgres",
                             password=os.getenv("pgsqlpw"))
@@ -20,18 +20,18 @@ def insert_query(table: str, rows: list, values: list) -> int:
     :param table: The table that the query should be executed on
     :param rows: The rows that values should be inserted to
     :param values: The values that should be inserted into the rows.
-    the number of values has to be the same as the number of rows
+    :param values: the number of values has to be the same as the number of rows
     :return: 0 if the query was successful, an error code if not
     """
     rows_sql = ", ".join(rows)
     values_sql = [f"'{val}'" if val else 'NULL' for val in values]
     values_sql = ", ".join(values_sql)
-    sql = f"INSERT INTO {table}({rows_sql}) VALUES({values_sql});"
+    sql = f"INSERT INTO %s (%s) VALUES(%s);"
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql)
-    except psycopg2.DatabaseError as err:
+            cur.execute(sql, (table, rows_sql, values_sql))
+    except psycopg.DatabaseError as err:
         return int(err.pgcode)
     return 0
 
@@ -42,11 +42,12 @@ def arbitrary_query(sql: str) -> int:
     :param sql: sql-query
     :return: 0 if successful, error code if not successful
     """
+    sql_query = "%s;"
     try:
         with connect() as con:
             cur = con.cursor()
-            cur.execute(sql)
-    except psycopg2.Error as err:
+            cur.execute(sql, [sql_query])
+    except psycopg.Error as err:
         return int(err.pgcode)
     return 0
 
@@ -74,5 +75,5 @@ def select_query(table: str, columns: list[str], condition: str) -> int or list:
             # while the values are delivered in the same order they were queried
             res_mapped = [{f"{col}": f"{val}" for col, val in zip(columns, vals)} for vals in res]
             return res_mapped
-    except psycopg2.Error as err:
+    except psycopg.Error as err:
         return int(err.pgcode)
