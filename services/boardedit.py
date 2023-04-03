@@ -33,7 +33,7 @@ async def teamboardcreate(data, email):
     return True
 
 
-async def teamboarddelete(data, email):
+async def teamboarddelete(data):
     sql = 'DELETE FROM teamboard where teamboard_id = %s;'
     try:
         with db.connect() as con:
@@ -44,7 +44,7 @@ async def teamboarddelete(data, email):
     return True
 
 
-async def teamboardedit(data, email):
+async def teamboardedit(data):
     teamboard_id = data["teamboard"]
     sql = 'UPDATE teamboard set teamboard_name = %s WHERE teamboard_id = %s;'
     values = [data["name"], teamboard_id]
