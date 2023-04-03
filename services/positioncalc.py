@@ -60,6 +60,15 @@ async def move_column(teamboard_id, task_id, column, new_position):
                 row = cur.fetchone()
             new_right_neighbor = row[1]
             new_left_neighbor = row[0]
+        cur.execute("UPDATE task_column SET r_neighbor = %s "
+                    "WHERE part_of_teamboard=%s and part_of_task=%s and column_id = %s;"
+                    "UPDATE task_column SET l_neighbor = %s "
+                    "WHERE part_of_teamboard=%s and part_of_task=%s and column_id = %s;"
+                    "UPDATE task_column SET r_neighbor = %s and l_neighbor = %s "
+                    "WHERE part_of_teamboard=%s and part_of_task=%s and column_id = %s;",
+                    (column, teamboard_id, task_id, new_left_neighbor,
+                     column, teamboard_id, task_id, new_right_neighbor,
+                     new_right_neighbor, new_left_neighbor, teamboard_id, task_id, column))
     else:
         # iterate to find position right from itself
         new_position = new_position - old_position
