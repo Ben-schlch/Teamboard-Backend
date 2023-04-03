@@ -27,10 +27,10 @@ part_of_teamboard integer,
 task_name varchar(320) NOT NULL,
 task_id SERIAL,
 
-u_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, u_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
 l_neighbor integer DEFAULT NULL,
 	FOREIGN KEY (part_of_teamboard, l_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
+r_neighbor integer DEFAULT NULL,
+	FOREIGN KEY (part_of_teamboard, r_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
 
 Primary Key (part_of_teamboard, task_id)
 );
