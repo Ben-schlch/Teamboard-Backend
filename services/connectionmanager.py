@@ -1,7 +1,10 @@
+import logging
+
 from fastapi import WebSocket, HTTPException, status
 import jwt
 from services.users import login_user
-from services.db import select_query
+from services.db import connect
+from psycopg import cursor
 import time
 
 # Secret key used to sign JWT tokens
@@ -25,12 +28,19 @@ class ConnectionManager:
         self.active_connections.remove(item)
 
     async def broadcast(self, message: str, teamboard: int):
-        editors = select_query("teamboard_editors", ["editor"],  f"teamboard = '{teamboard}'")
-        for connection in [item for item in self.active_connections if item[1] in editors]:
-            await connection[0].send_text(message)
+        logging.info(f"Broadcasting message to teamboard {teamboard}")
+        with connect() as conn:
+            with conn.cursor() as cur:
+                sql = "SELECT editor FROM teamboard_editors WHERE teamboard = %s"
+                cur.execute(sql, teamboard)
+                editors = cur.fetchall()
+                editors = [item[0] for item in editors]
+        for connection in [item[0] for item in self.active_connections if item[1] in editors]:
+            await connection.send_text(message)
 
     @staticmethod
     async def send_personal_message(message: str, websocket: WebSocket):
+        logging.info(f"Sending personal message '{message}' to {websocket}")
         await websocket.send_text(message)
 
 
@@ -58,7 +68,8 @@ def verify_token(token: str):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
         return email
     except jwt.exceptions.InvalidSignatureError as e:
-        print(e)
+        logging.warning("Invalid token signature", e)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token signature")
-    except jwt.exceptions.DecodeError:
+    except jwt.exceptions.DecodeError as e:
+        logging.warning("Invalid token", e)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
