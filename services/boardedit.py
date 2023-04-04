@@ -1,11 +1,10 @@
-import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
 
 
 async def teamboardload(email):
     # TODO: Load all teamboards of an user and format them
-    return json_message_mit_allen_boards_und_inhalt
+    return  # json_message_mit_allen_boards_und_inhalt
 
 
 async def is_teamboardeditor(teamboardid, email):
@@ -55,8 +54,8 @@ async def taskcreate(data):
     teamboard_id = data["teamboard"]
     task_name = data["task"]["name"]
 
-    sql = 'INSERT INTO task (part_of_teamboard, task_name) VALUES (%s) RETURNING task_id;'
-    values = (teamboard_id, task_name)
+    sql = 'INSERT INTO task (part_of_teamboard, task_name) VALUES (%s, %s) RETURNING task_id;'
+    values = (teamboard_id, task_name,)
     with db.connect() as con:
         cur = con.cursor()
         cur.execute(sql, values)
@@ -118,7 +117,7 @@ async def columncreate(data):
         column_id = cur.fetchone()
         column_id = column_id[0]
         sql = 'INSERT INTO task_column (part_of_teamboard, part_of_task, name_of_column, l_neighbor) ' \
-              'VALUES (%s) RETURNING column_id;'
+              'VALUES (%s, %s, %s, %s) RETURNING column_id;'
         values = (teamboard_id, task_id, column_name, column_id)
         cur.execute(sql, values)
         new_column_id = cur.fetchone()[0]
@@ -175,9 +174,11 @@ async def subtaskcreate(data):
         l_neighbor = cur.fetchone()[0]
 
         sql = 'INSERT INTO subtask ' \
-              '(part_of_teamboard, part_of_task, part_of_column, subtask_name, created, deadline, color, description, worker, l_neighbor) ' \
-              'VALUES (%s) RETURNING subtask_id;'
-        values = (data["teamboard"], data["task"], data["state"], max_columns["name"], max_columns["created"], max_columns["deadline"],
+              '(part_of_teamboard, part_of_task, part_of_column, ' \
+              'subtask_name, created, deadline, color, description, worker, l_neighbor) ' \
+              'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) RETURNING subtask_id;'
+        values = (data["teamboard"], data["task"], data["state"], max_columns["name"], max_columns["created"],
+                  max_columns["deadline"],
                   max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
         cur.execute(sql, values)
         subtask_id = cur.fetchone()[0]
@@ -192,7 +193,6 @@ async def subtaskcreate(data):
 
 
 async def subtaskedit(data):
-
     max_columns = {
         "name": "",
         "created": "",
@@ -235,7 +235,8 @@ async def subtaskdelete(data):
         cur.execute(sql, (column_id, task_id, teamboard_id))
     return data
 
-def subtaskmove(data):
+
+async def subtaskmove(data):
     teamboard_id = data["teamboard"]
     task_id = data["task"]
     column_id = data["state"]

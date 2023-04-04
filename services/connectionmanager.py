@@ -4,7 +4,6 @@ from fastapi import WebSocket, HTTPException, status
 import jwt
 from services.users import login_user
 from services.db import connect
-from psycopg import cursor
 import time
 
 # Secret key used to sign JWT tokens

@@ -1,4 +1,3 @@
-import psycopg
 from services.db import connect
 
 
@@ -6,9 +5,9 @@ async def column_current_position(teamboard, task_id, column_id):
     # Assume the task to be moved has a primary key value of 1 and its new position is 6
     # Get the current left and right neighbor IDs of the task
     with connect() as con:
-        position = None
         cur = con.cursor()
-        sql = "SELECT l_neighbor, r_neighbor FROM task_column WHERE part_of_teamboard=%s and part_of_task=%s and column_id=%s"
+        sql = "SELECT l_neighbor, r_neighbor FROM task_column " \
+              "WHERE part_of_teamboard=%s and part_of_task=%s and column_id=%s"
         cur.execute(query=sql, params=(teamboard, task_id, column_id))
         neighbors = list(cur.fetchone())
         position = 0
@@ -20,7 +19,8 @@ async def column_current_position(teamboard, task_id, column_id):
                 while l_neighbor:
                     print("Left neighbor:", l_neighbor)
                     position += 1
-                    sql = "SELECT l_neighbor FROM task_column WHERE part_of_teamboard=%s and part_of_task=%s and column_id = %s"
+                    sql = "SELECT l_neighbor FROM task_column " \
+                          "WHERE part_of_teamboard=%s and part_of_task=%s and column_id = %s"
                     cur.execute(sql, (teamboard, task_id, l_neighbor))
                     l_neighbor = cur.fetchone()[0]
         else:
@@ -106,7 +106,6 @@ async def move_column(teamboard_id, task_id, column, new_position):
 
 async def subtask_current_position(teamboard_id, task_id, column_id, subtask_id):
     with connect() as con:
-        position = None
         cur = con.cursor()
         sql = "SELECT l_neighbor, r_neighbor FROM subtask " \
               "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column=%s and subtask_id=%s"
@@ -121,7 +120,8 @@ async def subtask_current_position(teamboard_id, task_id, column_id, subtask_id)
                 while l_neighbor:
                     print("Left neighbor:", l_neighbor)
                     position += 1
-                    sql = "SELECT l_neighbor FROM subtask WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s"
+                    sql = "SELECT l_neighbor FROM subtask " \
+                          "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s"
                     cur.execute(sql, (teamboard_id, task_id, column_id, l_neighbor))
                     l_neighbor = cur.fetchone()[0]
         else:
@@ -164,8 +164,8 @@ async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_positio
             for i in range(new_position):
                 print("Run:", i)
                 cur = con.cursor()
-                cur.execute("SELECT l_neighbor, subtask_id FROM subtask "
-                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
+                cur.execute("SELECT l_neighbor, subtask_id FROM subtask WHERE "
+                            "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
                             (teamboard_id, task_id, column_id, left_neighbor))
                 row = cur.fetchone()
                 left_neighbor = row[0]
@@ -177,8 +177,8 @@ async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_positio
             right_neighbor = neighbors[1]
             for i in range(new_position):
                 cur = con.cursor()
-                cur.execute("SELECT subtask_id, r_neighbor FROM subtask "
-                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
+                cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
+                            "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
                             (teamboard_id, task_id, right_neighbor))
                 row = cur.fetchone()
     print(row)
