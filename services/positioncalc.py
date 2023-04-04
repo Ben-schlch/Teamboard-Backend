@@ -145,7 +145,7 @@ async def subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbo
                         (neighbors[0], teamboard_id, task_id, column_id, neighbors[1]))
 
 
-def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_position):
+async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_position):
     # Move task to new position and update all involved neighbors
     old_position, neighbors = await subtask_current_position(teamboard_id, task_id, column_id, subtask_id)
     print("Oldposition:", old_position, " Neighbors:", neighbors, " Newposition:", new_position)
