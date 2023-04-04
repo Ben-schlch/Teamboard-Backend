@@ -1,4 +1,4 @@
-from services.db import insert_query, select_query
+from services.db import connect
 from services.passwords import hash_and_salt, check_pw
 from services.emails import send_email
 from fastapi import HTTPException
@@ -28,9 +28,11 @@ async def register_user(name: str, email: str, pwd: str):
     # TODO: catch non-valid emails and raise exceptions
     # TODO: look if the email is already in use before sending a confirmation email
     salt, pwd = hash_and_salt(pwd)
-    res = insert_query("""INSERT INTO users (username, mail, pwd, salt)
-                       VALUES (%s, %s, %s, %s)""",
-                       (name, email, pwd, salt))
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s)",
+                        (email, name, pwd, salt))
+            res = cur.statusmessage()
     if res:
         # unique violation --> email adr ist bereits in der Datenbank
         if res == 23505:
@@ -49,10 +51,8 @@ async def login_user(email: str, pwd: str):
     :return: True if the credentials are correct, false if they are incorrect or the DBMS returns an error
     """
     # There will be only one result because the mail attribute is the PRIMARY KEY
-    try:
-        res = select_query("users", ["pwd"], f"mail = '{email}'")[0]
-    except IndexError:
-        return False
-    if type(res) is int:
-        return False
-    return check_pw(pwd, res["pwd"])
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT pwd FROM users WHERE mail = %s", email)
+            res = cur.fetchone()[0]
+            return check_pw(pwd, res)
