@@ -72,9 +72,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
         email = verify_token(token)
     except KeyError:
-        await websocket.close(code=401, reason="Token missing")
+        await websocket.close()
     except HTTPException:
-        await websocket.close(code=401, reason="Token value is wrong")
+        await websocket.close()
     else:
         # Handle WebSocket connection
         await manager.connect(websocket, email)
