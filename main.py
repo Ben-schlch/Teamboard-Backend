@@ -16,6 +16,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     type_of_edit = data["type_of_edit"]
     boardid = data["teamboard"]["id"] or data["teamboard_id"]
     if await boardedit.is_teamboardeditor(boardid, email):
+        logging.info(kind_of_object + type_of_edit)
         match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
             case "teamboardload":
                 await boardedit.teamboardload(email)
@@ -71,7 +72,7 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
         email = verify_token(token)
-    except Exception:
+    except:
         await websocket.close()
     else:
         # Handle WebSocket connection
