@@ -53,6 +53,6 @@ async def login_user(email: str, pwd: str):
     # There will be only one result because the mail attribute is the PRIMARY KEY
     with connect() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT pwd FROM users WHERE mail = %s", email)
+            cur.execute("SELECT pwd FROM users WHERE mail = %s", (email,))
             res = cur.fetchone()[0]
             return check_pw(pwd, res)

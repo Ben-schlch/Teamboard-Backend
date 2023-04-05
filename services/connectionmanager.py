@@ -31,7 +31,7 @@ class ConnectionManager:
         with connect() as conn:
             with conn.cursor() as cur:
                 sql = "SELECT editor FROM teamboard_editors WHERE teamboard = %s"
-                cur.execute(sql, teamboard)
+                cur.execute(sql, (teamboard,))
                 editors = cur.fetchall()
                 editors = [item[0] for item in editors]
         for connection in [item[0] for item in self.active_connections if item[1] in editors]:
