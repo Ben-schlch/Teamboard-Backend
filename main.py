@@ -53,9 +53,9 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
         else:
             match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-                case "teamboardload":
+                case "boardload":
                     await boardedit.teamboardload(email)
-                case "teamboardcreate:":
+                case "boardcreate:":
                     await boardedit.teamboardcreate(data, email)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
