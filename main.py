@@ -92,8 +92,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
             while True:
                 data = await websocket.receive_text()
                 logging.info(f"Client #{email} sent: {data}")
-
-                await parse_message(websocket, json.loads(data), email)
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    await manager.send_personal_message(f"400 JSONDecodeError", websocket)
+                else:
+                    await parse_message(websocket, data, email)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
         except WebSocketDisconnect:
