@@ -26,7 +26,7 @@ async def teamboardcreate(data, email):
         cur = con.cursor()
         cur.execute(sql, values)
         teamboard_id = cur.fetchone()[0]
-        sql = 'INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s);'
+        sql = 'INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);'
         cur.execute(sql, (teamboard_id, email))
     data["teamboard"]["id"] = teamboard_id
     return data
