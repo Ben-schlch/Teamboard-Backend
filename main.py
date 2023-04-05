@@ -16,53 +16,57 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     type_of_edit = data["type_of_edit"]
     boardid = data["teamboard"]["id"] or data["teamboard_id"]
     logging.info(kind_of_object + type_of_edit)
-    if await boardedit.is_teamboardeditor(boardid, email):
-        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-            case "boardload":
-                await boardedit.teamboardload(email)
-            case "boardcreate:":
-                await boardedit.teamboardcreate(data, email)
-            case "boardelete:":
-                await boardedit.teamboarddelete(data)
-            case "boardedit:":
-                await boardedit.teamboardedit(data)
-            case "taskdelete:":
-                await boardedit.taskdelete(data)
-            case "taskcreate:":
-                await boardedit.taskcreate(data)
-            case "taskedit:":
-                await boardedit.taskedit(data)
-            case "statedelete:":
-                await boardedit.columndelete(data)
-            case "statecreate:":
-                await boardedit.columncreate(data)
-            case "stateedit:":
-                await boardedit.columnedit(data)
-            case "subtaskcreate:":
-                await boardedit.subtaskcreate(data)
-            case "subtaskedit:":
-                await boardedit.subtaskedit(data)
-            case "subtaskdelete:":
-                await boardedit.subtaskdelete(data)
-            case "subtaskmove:":
-                await boardedit.subtaskmove(data)
-            case "statemove:":
-                await boardedit.columnmove(data)
-            case _:
-                raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+    try:
+        if await boardedit.is_teamboardeditor(boardid, email):
+            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+                case "boardload":
+                    await boardedit.teamboardload(email)
+                case "boardcreate:":
+                    await boardedit.teamboardcreate(data, email)
+                case "boardelete:":
+                    await boardedit.teamboarddelete(data)
+                case "boardedit:":
+                    await boardedit.teamboardedit(data)
+                case "taskdelete:":
+                    await boardedit.taskdelete(data)
+                case "taskcreate:":
+                    await boardedit.taskcreate(data)
+                case "taskedit:":
+                    await boardedit.taskedit(data)
+                case "statedelete:":
+                    await boardedit.columndelete(data)
+                case "statecreate:":
+                    await boardedit.columncreate(data)
+                case "stateedit:":
+                    await boardedit.columnedit(data)
+                case "subtaskcreate:":
+                    await boardedit.subtaskcreate(data)
+                case "subtaskedit:":
+                    await boardedit.subtaskedit(data)
+                case "subtaskdelete:":
+                    await boardedit.subtaskdelete(data)
+                case "subtaskmove:":
+                    await boardedit.subtaskmove(data)
+                case "statemove:":
+                    await boardedit.columnmove(data)
+                case _:
+                    raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+        else:
+            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+                case "teamboardload":
+                    await boardedit.teamboardload(email)
+                case "teamboardcreate:":
+                    await boardedit.teamboardcreate(data, email)
+                case _:
+                    raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+    except Exception as e:
+        await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
+        logging.error(e)
     else:
-        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-            case "teamboardload":
-                await boardedit.teamboardload(email)
-            case "teamboardcreate:":
-                await boardedit.teamboardcreate(data, email)
-            case _:
-                raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
-                # await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
-    await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
-    jsoned = json.dumps(data)
-    boardid = data["teamboard"]["id"] or data["teamboard_id"]
-    await manager.broadcast(teamboard=boardid, message=jsoned)
+        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+        jsoned = json.dumps(data)
+        boardid = data["teamboard"]["id"] or data["teamboard_id"]
+        await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
 manager = ConnectionManager()
