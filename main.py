@@ -16,10 +16,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     try:
         kind_of_object = data["kind_of_object"]
         type_of_edit = data["type_of_edit"]
-        if data["teamboard"]["id"]:
-            boardid = data["teamboard"]["id"]
-        else:
-            boardid = data["teamboard_id"]
+        boardid = data["teamboard"]["id"] or data["teamboard_id"]
         if boardedit.is_teamboardeditor(boardid, email):
             match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "teamboardload":
@@ -68,6 +65,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     else:
         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
+        boardid = data["teamboard"]["id"] or data["teamboard_id"]
         await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
