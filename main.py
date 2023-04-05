@@ -49,7 +49,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             case "statemove:":
                 await boardedit.columnmove(data)
             case _:
-                await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
+                raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
     else:
         match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
             case "teamboardload":
@@ -57,7 +57,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             case "teamboardcreate:":
                 await boardedit.teamboardcreate(data, email)
             case _:
-                await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
+                raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+                # await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
     await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
     jsoned = json.dumps(data)
     boardid = data["teamboard"]["id"] or data["teamboard_id"]
