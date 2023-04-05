@@ -22,33 +22,33 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate:":
+                case "boardcreate":
                     await boardedit.teamboardcreate(data, email)
-                case "boarddelete:":
+                case "boarddelete":
                     await boardedit.teamboarddelete(data)
-                case "boardedit:":
+                case "boardedit":
                     await boardedit.teamboardedit(data)
-                case "taskdelete:":
+                case "taskdelete":
                     await boardedit.taskdelete(data)
-                case "taskcreate:":
+                case "taskcreate":
                     await boardedit.taskcreate(data)
-                case "taskedit:":
+                case "taskedit":
                     await boardedit.taskedit(data)
-                case "statedelete:":
+                case "statedelete":
                     await boardedit.columndelete(data)
-                case "statecreate:":
+                case "statecreate":
                     await boardedit.columncreate(data)
-                case "stateedit:":
+                case "stateedit":
                     await boardedit.columnedit(data)
-                case "subtaskcreate:":
+                case "subtaskcreate":
                     await boardedit.subtaskcreate(data)
-                case "subtaskedit:":
+                case "subtaskedit":
                     await boardedit.subtaskedit(data)
-                case "subtaskdelete:":
+                case "subtaskdelete":
                     await boardedit.subtaskdelete(data)
-                case "subtaskmove:":
+                case "subtaskmove":
                     await boardedit.subtaskmove(data)
-                case "statemove:":
+                case "statemove":
                     await boardedit.columnmove(data)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
@@ -56,7 +56,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate:":
+                case "boardcreate":
                     await boardedit.teamboardcreate(data, email)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
