@@ -71,9 +71,7 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
         email = verify_token(token)
-    except KeyError:
-        await websocket.close()
-    except HTTPException:
+    except Exception:
         await websocket.close()
     else:
         # Handle WebSocket connection
