@@ -15,16 +15,16 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data["teamboard"]["id"] or data["teamboard_id"]
+    logging.info(kind_of_object + type_of_edit)
     if await boardedit.is_teamboardeditor(boardid, email):
-        logging.info(kind_of_object + type_of_edit)
         match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-            case "teamboardload":
+            case "boardload":
                 await boardedit.teamboardload(email)
-            case "teamboardcreate:":
+            case "boardcreate:":
                 await boardedit.teamboardcreate(data, email)
-            case "teamboardelete:":
+            case "boardelete:":
                 await boardedit.teamboarddelete(data)
-            case "teamboardedit:":
+            case "boardedit:":
                 await boardedit.teamboardedit(data)
             case "taskdelete:":
                 await boardedit.taskdelete(data)
