@@ -86,7 +86,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     else:
         # Handle WebSocket connection
         await manager.connect(websocket, email)
-        logging.debug(f"Client #{email} connected")
+        logging.info(f"Client #{email} connected")
         await websocket.send_text(f"200")
         try:
             while True:
@@ -98,7 +98,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 # await manager.broadcast(f"Client #{email} says: {data}")
         except WebSocketDisconnect:
             manager.disconnect(websocket)
-            logging.debug(f"Client #{email} disconnected")
+            logging.info(f"Client #{email} disconnected")
 
 
 # Define an HTTP endpoint that generates a JWT token given an email and password

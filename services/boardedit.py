@@ -131,7 +131,7 @@ async def columncreate(data):
     return new_column_id
 
 
-def columnmove(data):
+async def columnmove(data):
     teamboard_id = data["teamboard_id"]
     task_id = data["task"]
     colum_id = data["state"]["id"]
