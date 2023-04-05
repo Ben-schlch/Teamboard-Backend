@@ -11,62 +11,56 @@ app = FastAPI()
 
 
 async def parse_message(websocket: WebSocket, data: dict, email: str):
-    kind_of_object = "ObjectError"
-    type_of_edit = "EditError"
-    try:
-        kind_of_object = data["kind_of_object"]
-        type_of_edit = data["type_of_edit"]
-        boardid = data["teamboard"]["id"] or data["teamboard_id"]
-        if boardedit.is_teamboardeditor(boardid, email):
-            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-                case "teamboardload":
-                    await boardedit.teamboardload(email)
-                case "teamboardcreate:":
-                    await boardedit.teamboardcreate(data, email)
-                case "teamboardelete:":
-                    await boardedit.teamboarddelete(data)
-                case "teamboardedit:":
-                    await boardedit.teamboardedit(data)
-                case "taskdelete:":
-                    await boardedit.taskdelete(data)
-                case "taskcreate:":
-                    await boardedit.taskcreate(data)
-                case "taskedit:":
-                    await boardedit.taskedit(data)
-                case "statedelete:":
-                    await boardedit.columndelete(data)
-                case "statecreate:":
-                    await boardedit.columncreate(data)
-                case "stateedit:":
-                    await boardedit.columnedit(data)
-                case "subtaskcreate:":
-                    await boardedit.subtaskcreate(data)
-                case "subtaskedit:":
-                    await boardedit.subtaskedit(data)
-                case "subtaskdelete:":
-                    await boardedit.subtaskdelete(data)
-                case "subtaskmove:":
-                    await boardedit.subtaskmove(data)
-                case "statemove:":
-                    await boardedit.columnmove(data)
-                case _:
-                    await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
-        else:
-            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
-                case "teamboardload":
-                    await boardedit.teamboardload(email)
-                case "teamboardcreate:":
-                    await boardedit.teamboardcreate(data, email)
-                case _:
-                    await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
-    except Exception as e:
-        logging.warning(e)
-        await manager.send_personal_message(f"500 {kind_of_object} {type_of_edit}", websocket)
+
+    kind_of_object = data["kind_of_object"]
+    type_of_edit = data["type_of_edit"]
+    boardid = data["teamboard"]["id"] or data["teamboard_id"]
+    if await boardedit.is_teamboardeditor(boardid, email):
+        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+            case "teamboardload":
+                await boardedit.teamboardload(email)
+            case "teamboardcreate:":
+                await boardedit.teamboardcreate(data, email)
+            case "teamboardelete:":
+                await boardedit.teamboarddelete(data)
+            case "teamboardedit:":
+                await boardedit.teamboardedit(data)
+            case "taskdelete:":
+                await boardedit.taskdelete(data)
+            case "taskcreate:":
+                await boardedit.taskcreate(data)
+            case "taskedit:":
+                await boardedit.taskedit(data)
+            case "statedelete:":
+                await boardedit.columndelete(data)
+            case "statecreate:":
+                await boardedit.columncreate(data)
+            case "stateedit:":
+                await boardedit.columnedit(data)
+            case "subtaskcreate:":
+                await boardedit.subtaskcreate(data)
+            case "subtaskedit:":
+                await boardedit.subtaskedit(data)
+            case "subtaskdelete:":
+                await boardedit.subtaskdelete(data)
+            case "subtaskmove:":
+                await boardedit.subtaskmove(data)
+            case "statemove:":
+                await boardedit.columnmove(data)
+            case _:
+                await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
     else:
-        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
-        jsoned = json.dumps(data)
-        boardid = data["teamboard"]["id"] or data["teamboard_id"]
-        await manager.broadcast(teamboard=boardid, message=jsoned)
+        match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+            case "teamboardload":
+                await boardedit.teamboardload(email)
+            case "teamboardcreate:":
+                await boardedit.teamboardcreate(data, email)
+            case _:
+                await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
+    await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+    jsoned = json.dumps(data)
+    boardid = data["teamboard"]["id"] or data["teamboard_id"]
+    await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
 manager = ConnectionManager()
@@ -96,7 +90,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 except json.JSONDecodeError as e:
                     logging.info(f"JSON Decode Error {e}")
                     await manager.send_personal_message(f"400 JSONDecodeError", websocket)
-                else:
+                except Exception:
                     await manager.send_personal_message(f"400 Error", websocket)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
