@@ -1,3 +1,5 @@
+import json
+import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
 
@@ -43,12 +45,28 @@ async def teamboardcreate(data, email):
     return data
 
 
-async def teamboarddelete(data):
-    sql = 'DELETE FROM teamboard where teamboard_id = %s;'
+async def teamboarddelete(data, manager):
+    sql = 'SELECT Count(1) from teamboard where teamboard_id = %s;'
     with db.connect() as con:
         cur = con.cursor()
-        cur.execute(sql, (data["teamboard"]["id"],))
-    return data
+        teamboard = data["teamboard"]["id"]
+        cur.execute(sql, (teamboard,))
+        exists = cur.fetchone()[0]
+        exists = exists > 0
+        if exists:
+            sql = "SELECT editor FROM teamboard_editors WHERE teamboard = %s"
+            cur.execute(sql, (teamboard,))
+            editors = cur.fetchall()
+            editors = [item[0] for item in editors]
+            sql = 'DELETE FROM teamboard where teamboard_id = %s;'
+            cur.execute(sql, (teamboard,))
+            for connection in [item[0] for item in manager.active_connections if item[1] in editors]:
+                await connection.send_text(json.dump(data))
+            return data
+        else:
+            raise psycopg.Error
+
+
 
 
 async def teamboardedit(data):
