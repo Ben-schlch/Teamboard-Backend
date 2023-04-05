@@ -32,7 +32,7 @@ async def register_user(name: str, email: str, pwd: str):
         with conn.cursor() as cur:
             cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s)",
                         (email, name, pwd, salt))
-            res = cur.statusmessage()
+            res = cur.statusmessage
     if res:
         # unique violation --> email adr ist bereits in der Datenbank
         if res == 23505:
