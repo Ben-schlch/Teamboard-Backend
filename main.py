@@ -68,7 +68,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     else:
         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
-        await manager.broadcast(teamboard=int(data["teamboard"]), message=jsoned)
+        await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
 manager = ConnectionManager()
@@ -94,10 +94,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 logging.info(f"Client #{email} sent: {data}")
                 try:
                     data = json.loads(data)
-                except json.JSONDecodeError:
+                    await parse_message(websocket, data, email)
+                except json.JSONDecodeError as e:
+                    logging.info(f"JSON Decode Error {e}")
                     await manager.send_personal_message(f"400 JSONDecodeError", websocket)
                 else:
-                    await parse_message(websocket, data, email)
+                    await manager.send_personal_message(f"400 Error", websocket)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
         except WebSocketDisconnect:
