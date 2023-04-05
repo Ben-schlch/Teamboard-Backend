@@ -4,8 +4,19 @@ import services.positioncalc as positioncalc
 
 
 async def teamboardload(email):
-    # TODO: Load all teamboards of an user and format them
-    return None
+    sql = 'SELECT * FROM teamboard ' \
+          'WHERE teamboard_id IN (' \
+          'SELECT teamboard FROM teamboard_editors ' \
+          'WHERE editor = %s);'
+    values = [email]
+    try:
+        with db.connect() as con:
+            cur = con.cursor()
+            cur.execute(sql, values)
+            teamboards = cur.fetchall()
+    except psycopg.DatabaseError as err:
+        return int(err.sqlstate)
+    return teamboards
 
 
 async def is_teamboardeditor(teamboardid, email):
