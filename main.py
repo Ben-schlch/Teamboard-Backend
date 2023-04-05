@@ -58,10 +58,10 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "boardcreate:":
                     await boardedit.teamboardcreate(data, email)
                 case _:
-                    raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+                    raise HTTPException(status_code=404, detail=f"404 Not found {kind_of_object} {type_of_edit}")
     except Exception as e:
-        await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
-        logging.error(e)
+        await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
+        logging.error(type(e), e)
     else:
         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
