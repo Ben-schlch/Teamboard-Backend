@@ -15,10 +15,11 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data["teamboard"]["id"] or data["teamboard_id"]
-    logging.info(kind_of_object + type_of_edit)
+    combined = kind_of_object + type_of_edit
+    logging.info(combined)
     try:
         if await boardedit.is_teamboardeditor(boardid, email):
-            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+            match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
                 case "boardcreate:":
@@ -52,13 +53,13 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
         else:
-            match kind_of_object + type_of_edit:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
+            match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
                 case "boardcreate:":
                     await boardedit.teamboardcreate(data, email)
                 case _:
-                    raise HTTPException(status_code=404, detail=f"404 Not found {kind_of_object} {type_of_edit}")
+                    raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
     except Exception as e:
         await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
