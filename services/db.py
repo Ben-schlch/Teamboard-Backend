@@ -1,8 +1,10 @@
 import psycopg
 import os
+from psycopg import sql as SQL
+from psycopg.rows import dict_row, tuple_row
 
 
-def connect():
+def connect(row_factory=tuple_row):
     """
     Connect to the teamboard database. Choice of Database might be enabled in the future
     :return: Connection to the database
@@ -10,24 +12,25 @@ def connect():
     conn = psycopg.connect(host="localhost",
                            dbname="teamboard",
                            user="postgres",
-                           password=os.getenv("pgsqlpw"))
+                           password=os.getenv("pgsqlpw"),
+                           row_factory=row_factory)
     return conn
 
 
-# def insert_query(sql: str, params: tuple[any, ...]) -> int:
-#     """
-#     Function that executes an insert query on the teamboard database.
-#     :param sql: sql-query
-#     :param params: Parameters for the query
-#     """
-#
-#     try:
-#         with connect() as con:
-#             cur = con.cursor()
-#             cur.execute(sql, params)
-#     except psycopg.DatabaseError as err:
-#         return int(err.args[0])
-#     return 0
+def insert_query(sql: str, params: tuple[any, ...]) -> int:
+    """
+    Function that executes an insert query on the teamboard database.
+    :param sql: sql-query
+    :param params: Parameters for the query
+    """
+
+    try:
+        with connect() as con:
+            cur = con.cursor()
+            cur.execute(sql, params)
+    except psycopg.DatabaseError as err:
+        return int(err.sqlstate)
+    return 0
 
 #
 # def arbitrary_query(sql: str) -> int:
@@ -44,30 +47,24 @@ def connect():
 #     except psycopg.Error as err:
 #         return int(err.pgcode)
 #     return 0
-#
-#
-# def select_query(table: str, columns: list[str], condition: str) -> int or list:
-#     """
-#     Function that executes a select query on the database.
-#     :param table: Table the query should be executed on
-#     :param columns: Values that should be returned
-#     :param condition: Arbitrary condition string
-#     :return: Error code or results if successful
-#     """
-#
-#     columns_str = ", ".join(columns)
-#     sql = "SELECT %s FROM %s WHERE %s;"
-#
-#     try:
-#         with connect() as con:
-#             cur = con.cursor()
-#             cur.execute(sql, [columns_str, table, condition])
-#             res = cur.fetchall()
-#             # creates a mapping of the selected columns to the values
-#             # There might be multiple vals per column -> iterate over all the results
-#             # response from db looks like this: list[(val1, val2,...), (val1, val2, ...), ...]
-#             # while the values are delivered in the same order they were queried
-#             res_mapped = [{f"{col}": f"{val}" for col, val in zip(columns, vals)} for vals in res]
-#             return res_mapped
-#     except psycopg.Error as err:
-#         return int(err.pgcode)
+
+
+def select_query(sql: str, params: tuple) -> int or list:
+    """
+    Function that executes a select query on the database.
+    :return: Error code or results if successful
+    """
+
+    try:
+        with connect(dict_row) as con:
+            cur = con.cursor()
+            cur.execute(sql, params)
+            res = cur.fetchall()
+            # creates a mapping of the selected columns to the values
+            # There might be multiple vals per column -> iterate over all the results
+            # response from db looks like this: list[(val1, val2,...), (val1, val2, ...), ...]
+            # while the values are delivered in the same order they were queried
+            # res_mapped = [{f"{col}": f"{val}" for col, val in zip(columns, vals)} for vals in res]
+            return res
+    except psycopg.Error as err:
+        return int(err.sqlstate)

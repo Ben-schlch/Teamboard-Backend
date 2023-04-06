@@ -2,22 +2,95 @@ import json
 import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
+from psycopg import sql as SQL
 
 
 async def teamboardload(email):
-    sql = 'SELECT * FROM teamboard ' \
+    sql_teamboard = 'SELECT teamboard_name, teamboard_id FROM teamboard ' \
           'WHERE teamboard_id IN (' \
           'SELECT teamboard FROM teamboard_editors ' \
           'WHERE editor = %s);'
-    values = [email]
-    try:
-        with db.connect() as con:
-            cur = con.cursor()
-            cur.execute(sql, values)
-            teamboards = cur.fetchall()
-    except psycopg.DatabaseError as err:
-        return int(err.sqlstate)
-    return teamboards
+
+    values = (email,)
+    teamboards = db.select_query(sql_teamboard, values)
+    print(teamboards)
+    for t in teamboards:
+        print(t["teamboard_id"])
+        t["tasks"] = await tasklist_helper(t["teamboard_id"])
+    return json.dumps(teamboards)
+
+
+async def tasklist_helper(teamboard_id: int) -> list:
+    sql_first_task = "SELECT task_name, task_id, r_neighbor FROM task " \
+                     "WHERE part_of_teamboard = %s AND l_neighbor is NULL"
+    sql_task = "SELECT task_name, r_neighbor, task_id FROM task WHERE task_id = %s;"
+    tasks = []
+    values = (teamboard_id,)
+    task = db.select_query(sql_first_task, values)
+    if not task:
+        return []
+    tasks.append({"name": task[0]["task_name"], "states": await statelist_helper(task[0]["task_id"])})
+    r_neighbor = task[0]["r_neighbor"]
+    while r_neighbor:
+        values = (r_neighbor, )
+        task = db.select_query(sql_task, values)
+        if not task:
+            return []
+        print(task[0])
+        tasks.append({"name": task[0]["task_name"], "states": await statelist_helper(task[0]["task_id"])})
+        r_neighbor = task[0]["r_neighbor"]
+    return tasks
+
+
+async def statelist_helper(task_id: int) -> list:
+    sql_first_state = "SELECT name_of_column, column_id, r_neighbor FROM task_column " \
+                      "WHERE part_of_task = %s " \
+                      "AND l_neighbor is NULL;"
+    sql_state = "SELECT name_of_column, column_id, r_neighbor FROM task_column " \
+                "WHERE column_id = %s;"
+    states = []
+    values = (task_id,)
+    state = db.select_query(sql_first_state, values)
+    if not state:
+        return []
+    states.append({"name": state[0]["name_of_column"], "subtasks": await subtasklist_helper(state[0]["column_id"])})
+    r_neighbor = state[0]["r_neighbor"]
+    while r_neighbor:
+        values = (r_neighbor, )
+        state = db.select_query(sql_state, values)
+        if not state:
+            return []
+        states.append({"name": state[0]["name_of_column"],
+                       "subtasks": await subtasklist_helper(state[0]["column_id"])})
+        r_neighbor = state[0]["r_neighbor"]
+    return states
+
+
+async def subtasklist_helper(state_id: int) -> list:
+    sql_first_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+                        "WHERE part_of_column = %s " \
+                        "AND l_neighbor is NULL;"
+    sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+                  "WHERE subtask_id = %s;"
+    subtasks = []
+    values = (state_id, )
+    subtask = db.select_query(sql_first_subtask, values)
+    if not subtask:
+        return []
+    subtasks.append({"name": subtask[0]["subtask_name"],
+                     "description": subtask[0]["description"],
+                     "worker": subtask[0]["worker"]})
+    r_neighbor = subtask[0]["r_neighbor"]
+    while r_neighbor:
+        values = (r_neighbor, )
+        subtask = db.select_query(sql_subtask, values)
+        if not subtask:
+            return []
+        subtasks.append({"name": subtask[0]["subtask_name"],
+                         "description": subtask[0]["description"],
+                         "worker": subtask[0]["worker"]})
+        r_neighbor = subtask[0]["r_neighbor"]
+    return subtasks
 
 
 async def is_teamboardeditor(teamboardid, email):
