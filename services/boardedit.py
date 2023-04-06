@@ -213,7 +213,7 @@ async def subtaskcreate(data):
               "(part_of_teamboard, part_of_task, part_of_column, " \
               "subtask_name, deadline, color, description, worker, l_neighbor) " \
               "VALUES (%s, %s, %s, %s, nullif(%s,''), %s, %s, %s, %s ) RETURNING subtask_id;"
-        values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"], max_columns["created"],
+        values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"],
                   max_columns["deadline"],
                   max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
         cur.execute(sql, values)
