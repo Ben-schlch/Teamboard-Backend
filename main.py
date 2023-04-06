@@ -1,3 +1,5 @@
+import psycopg
+
 from services.users import register_user, UserBody, Credentials
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -14,7 +16,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
 
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
-    boardid = data["teamboard"]["id"] or data["teamboard_id"]
+    boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
     combined = kind_of_object + type_of_edit
     logging.info(combined)
     try:
@@ -22,7 +24,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate":
+                case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case "boarddelete":
                     await boardedit.teamboarddelete(data, manager)
@@ -30,17 +32,17 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.teamboardedit(data)
                 case "taskdelete":
                     await boardedit.taskdelete(data)
-                case "taskcreate":
+                case "taskadd":
                     await boardedit.taskcreate(data)
                 case "taskedit":
                     await boardedit.taskedit(data)
                 case "statedelete":
                     await boardedit.columndelete(data)
-                case "statecreate":
+                case "stateadd":
                     await boardedit.columncreate(data)
                 case "stateedit":
                     await boardedit.columnedit(data)
-                case "subtaskcreate":
+                case "subtaskadd":
                     await boardedit.subtaskcreate(data)
                 case "subtaskedit":
                     await boardedit.subtaskedit(data)
@@ -56,17 +58,23 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate":
+                case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
+    except HTTPException as e:
+        await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
+        logging.error(type(e), e)
+    except psycopg.Error as e:
+        await manager.send_personal_message(f"400 psycopg.Error {kind_of_object} {type_of_edit}", websocket)
+        logging.error(type(e), e)
     except Exception as e:
         await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
     else:
         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
-        boardid = data["teamboard"]["id"] or data["teamboard_id"]
+        boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
         await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
@@ -96,8 +104,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                     logging.info(f"JSON Decode Error {e}")
                     await manager.send_personal_message(f"400 JSONDecodeError", websocket)
                 except Exception as e:
-                    logging.info(f"400 Error with {websocket}: {str(e)}")
-                    await manager.send_personal_message(f"400 Error", websocket)
+                    logging.info(f"400 Error with {websocket}: {type(e)}: {str(e)}")
+                    await manager.send_personal_message(f"400 Error Parsemessage", websocket)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
         except WebSocketDisconnect:

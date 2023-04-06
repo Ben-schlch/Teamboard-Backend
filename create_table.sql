@@ -28,9 +28,9 @@ task_name varchar(320) NOT NULL,
 task_id SERIAL,
 
 l_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, l_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, l_neighbor) references task ON DELETE SET NULL ON UPDATE CASCADE,
 r_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, r_neighbor) references task ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, r_neighbor) references task ON DELETE SET NULL ON UPDATE CASCADE,
 
 Primary Key (part_of_teamboard, task_id)
 );
@@ -45,9 +45,9 @@ name_of_column varchar(320) NOT NULL,
 column_id SERIAL,
 
 l_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, part_of_task, l_neighbor) references task_column ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, part_of_task, l_neighbor) references task_column ON DELETE SET NULL ON UPDATE CASCADE,
 r_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, part_of_task, r_neighbor) references task_column ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, part_of_task, r_neighbor) references task_column ON DELETE SET NULL ON UPDATE CASCADE,
 
 PRIMARY KEY(part_of_teamboard, part_of_task, column_id)
 );
@@ -62,18 +62,18 @@ part_of_column integer,
 	FOREIGN KEY(part_of_teamboard, part_of_task, part_of_column) references task_column ON DELETE CASCADE ON UPDATE CASCADE,
 subtask_name varchar(320),
 subtask_id SERIAL,
-created date NOT NULL,
+created date NOT NULL default CURRENT_DATE,
 deadline date,
 color varchar(20),
 description varchar,
-worker varchar(320) references users(mail) ON DELETE CASCADE ON UPDATE CASCADE,
+worker varchar(320) references users(mail) ON DELETE SET NULL ON UPDATE CASCADE,
 priority integer DEFAULT 1,
 	check (priority BETWEEN 0 and 100),
 
 l_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, part_of_task, part_of_column, l_neighbor) references subtask ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, part_of_task, part_of_column, l_neighbor) references subtask ON DELETE SET NULL ON UPDATE CASCADE,
 r_neighbor integer DEFAULT NULL,
-	FOREIGN KEY (part_of_teamboard, part_of_task, part_of_column, r_neighbor) references subtask ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (part_of_teamboard, part_of_task, part_of_column, r_neighbor) references subtask ON DELETE SET NULL ON UPDATE CASCADE,
 
 	PRIMARY KEY(part_of_teamboard, part_of_task, part_of_column, subtask_id)
 
