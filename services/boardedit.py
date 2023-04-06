@@ -118,7 +118,7 @@ async def taskedit(data):
 
 async def columndelete(data: dict):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
+    task_id = data["task_id"]
     column_id = data["state"]["id"]
 
     with db.connect() as con:
@@ -136,8 +136,8 @@ async def columndelete(data: dict):
 
 async def columncreate(data):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
-    column_name = data["state"]["name"]
+    task_id = data["task_id"]
+    column_name = data["state"]["state_name"]
     sql = 'SELECT column_id FROM task_column WHERE part_of_teamboard=%s AND part_of_task=%s and r_neighbor IS NULL;'
     values = (teamboard_id, task_id)
     with db.connect() as con:
@@ -162,7 +162,7 @@ async def columncreate(data):
 
 async def columnmove(data):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
+    task_id = data["task_id"]
     colum_id = data["state"]["id"]
     newposition = data["newPosition"]
     await positioncalc.move_column(teamboard_id, task_id, colum_id, newposition)
@@ -171,9 +171,9 @@ async def columnmove(data):
 
 async def columnedit(data):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
+    task_id = data["task_id"]
     column_id = data["state"]["id"]
-    name = data["state"]["name"]
+    name = data["state"]["state_name"]
     sql = 'UPDATE task_column set name_of_column = %s ' \
           'WHERE part_of_teamboard = %s and part_of_task = %s and column_id = %s;'
     values = [name, teamboard_id, task_id, column_id]
@@ -198,7 +198,7 @@ async def subtaskcreate(data):
         cur = con.cursor()
         sql = 'SELECT subtask_id FROM subtask WHERE part_of_teamboard=%s ' \
               'AND part_of_task=%s and part_of_column=%s and r_neighbor IS NULL;'
-        values = (data["teamboard_id"], data["task"], data["column"])
+        values = (data["teamboard_id"], data["task_id"], data["state_id"])
         cur.execute(sql, values)
         l_neighbor = cur.fetchone()[0]
 
@@ -206,7 +206,7 @@ async def subtaskcreate(data):
               '(part_of_teamboard, part_of_task, part_of_column, ' \
               'subtask_name, created, deadline, color, description, worker, l_neighbor) ' \
               'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) RETURNING subtask_id;'
-        values = (data["teamboard_id"], data["task"], data["state"], max_columns["name"], max_columns["created"],
+        values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"], max_columns["created"],
                   max_columns["deadline"],
                   max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
         cur.execute(sql, values)
@@ -214,7 +214,7 @@ async def subtaskcreate(data):
         sql = 'UPDATE subtask SET r_neighbor = %s ' \
               'Where part_of_teamboard=%s AND part_of_task=%s ' \
               'and part_of_column=%s and subtask_id= %s;'
-        values = (subtask_id, data["teamboard_id"], data["task"], data["state"], l_neighbor)
+        values = (subtask_id, data["teamboard_id"], data["task_id"], data["state_id"], l_neighbor)
         cur.execute(sql, values)
         print("Test: ID: ", subtask_id)
         data["subtask"]["id"] = subtask_id
@@ -240,7 +240,7 @@ async def subtaskedit(data):
               "SET subtask_name = %s, created = %s, deadline = %s, color = %s, description = %s, worker = %s " \
               "WHERE part_of_teamboard = %s and part_of_task = %s and part_of_column = %s and subtask_id = %s;"
         values = (max_columns["name"], max_columns["created"], max_columns["deadline"], max_columns["color"],
-                  max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task"], data["state"],
+                  max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task_id"], data["state_id"],
                   data["subtask"]["id"])
         cur.execute(sql, values)
     return data
@@ -248,8 +248,8 @@ async def subtaskedit(data):
 
 async def subtaskdelete(data):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
-    column_id = data["state"]
+    task_id = data["task_id"]
+    column_id = data["state_id"]
     subtask_id = data["subtask"]["id"]
     with db.connect() as con:
         cur = con.cursor()
@@ -267,8 +267,8 @@ async def subtaskdelete(data):
 
 async def subtaskmove(data):
     teamboard_id = data["teamboard_id"]
-    task_id = data["task"]
-    column_id = data["state"]
+    task_id = data["task_id"]
+    column_id = data["state_id"]
     subtask_id = data["subtask"]["id"]
     newposition = data["newPosition"]
     await positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
