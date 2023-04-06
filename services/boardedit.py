@@ -269,11 +269,11 @@ async def subtaskdelete(data):
               "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column=%s and subtask_id=%s"
         cur.execute(query=sql, params=(teamboard_id, task_id, column_id, subtask_id))
         neighbors = list(cur.fetchone())
-        await positioncalc.column_adjust_old_neighbors(teamboard_id, task_id, neighbors)
+        await positioncalc.subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors)
 
         sql = 'DELETE FROM subtask ' \
               'where part_of_column = %s and part_of_task = %s and part_of_teamboard = %s and subtask_id = %s;'
-        cur.execute(sql, (column_id, task_id, teamboard_id))
+        cur.execute(sql, (column_id, task_id, teamboard_id, subtask_id))
     return data
 
 
