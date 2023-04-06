@@ -16,7 +16,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
 
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
-    boardid = data["teamboard"]["id"] or data["teamboard_id"]
+    boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
     combined = kind_of_object + type_of_edit
     logging.info(combined)
     try:
@@ -74,7 +74,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     else:
         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
-        boardid = data["teamboard"]["id"] or data["teamboard_id"]
+        boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
         await manager.broadcast(teamboard=boardid, message=jsoned)
 
 
