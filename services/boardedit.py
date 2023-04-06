@@ -189,7 +189,7 @@ async def columnedit(data):
 
 async def subtaskcreate(data):
     max_columns = {
-        "created": "",
+        "created": f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "deadline": "",
         "description": "",
         "color": "",
@@ -210,10 +210,10 @@ async def subtaskcreate(data):
         else:
             l_neighbor = l_neighbor[0]
 
-        sql = 'INSERT INTO subtask ' \
-              '(part_of_teamboard, part_of_task, part_of_column, ' \
-              'subtask_name, created, deadline, color, description, worker, l_neighbor) ' \
-              'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) RETURNING subtask_id;'
+        sql = "INSERT INTO subtask " \
+              "(part_of_teamboard, part_of_task, part_of_column, " \
+              "subtask_name, deadline, color, description, worker, l_neighbor) " \
+              "VALUES (%s, %s, %s, %s, nullif(%s,''), %s, %s, %s, %s ) RETURNING subtask_id;"
         values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"], max_columns["created"],
                   max_columns["deadline"],
                   max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
