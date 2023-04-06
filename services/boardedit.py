@@ -2,6 +2,7 @@ import json
 import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
+import logging
 
 
 async def teamboardload(email):
@@ -67,8 +68,6 @@ async def teamboarddelete(data, manager):
             raise psycopg.Error
 
 
-
-
 async def teamboardedit(data):
     teamboard_id = data["teamboard"]["id"]
     sql = 'UPDATE teamboard set teamboard_name = %s WHERE teamboard_id = %s;'
@@ -82,7 +81,7 @@ async def teamboardedit(data):
 async def taskcreate(data):
     teamboard_id = data["teamboard_id"]
     task_name = data["task"]["name"]
-
+    logging.info(f"taskcreate: {teamboard_id}, {task_name}")
     sql = 'INSERT INTO task (part_of_teamboard, task_name) VALUES (%s, %s) RETURNING task_id;'
     values = (teamboard_id, task_name,)
     with db.connect() as con:
@@ -90,6 +89,7 @@ async def taskcreate(data):
         cur.execute(sql, values)
         task_id = cur.fetchone()[0]
     data["task"]["id"] = task_id
+    logging.info(f"taskcreate: successfull with new id: {task_id}")
     return data
 
 
