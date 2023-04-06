@@ -22,7 +22,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate":
+                case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case "boarddelete":
                     await boardedit.teamboarddelete(data, manager)
@@ -30,17 +30,17 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.teamboardedit(data)
                 case "taskdelete":
                     await boardedit.taskdelete(data)
-                case "taskcreate":
+                case "taskadd":
                     await boardedit.taskcreate(data)
                 case "taskedit":
                     await boardedit.taskedit(data)
                 case "statedelete":
                     await boardedit.columndelete(data)
-                case "statecreate":
+                case "stateadd":
                     await boardedit.columncreate(data)
                 case "stateedit":
                     await boardedit.columnedit(data)
-                case "subtaskcreate":
+                case "subtaskadd":
                     await boardedit.subtaskcreate(data)
                 case "subtaskedit":
                     await boardedit.subtaskedit(data)
@@ -56,7 +56,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
                     await boardedit.teamboardload(email)
-                case "boardcreate":
+                case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
