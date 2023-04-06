@@ -104,7 +104,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                     logging.info(f"JSON Decode Error {e}")
                     await manager.send_personal_message(f"400 JSONDecodeError", websocket)
                 except Exception as e:
-                    logging.info(f"400 Error with {websocket}: {str(e)}")
+                    logging.info(f"400 Error with {websocket}: {type(e)}: {str(e)}")
                     await manager.send_personal_message(f"400 Error Parsemessage", websocket)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
