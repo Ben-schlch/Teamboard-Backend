@@ -189,7 +189,6 @@ async def columnedit(data):
 
 async def subtaskcreate(data):
     max_columns = {
-        "created": f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "deadline": "",
         "description": "",
         "color": "",
