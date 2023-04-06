@@ -1,3 +1,5 @@
+import psycopg
+
 from services.users import register_user, UserBody, Credentials
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -60,6 +62,12 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.teamboardcreate(data, email)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
+    except HTTPException as e:
+        await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
+        logging.error(type(e), e)
+    except psycopg.Error as e:
+        await manager.send_personal_message(f"400 psycopg.Error {kind_of_object} {type_of_edit}", websocket)
+        logging.error(type(e), e)
     except Exception as e:
         await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
