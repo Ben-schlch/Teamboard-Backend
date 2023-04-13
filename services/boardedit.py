@@ -35,7 +35,7 @@ async def tasklist_helper(teamboard_id: int) -> list:
         values = (r_neighbor, )
         task = db.select_query(sql_task, values)
         if not task:
-            return []
+            return tasks
         print(task[0])
         tasks.append({"name": task[0]["task_name"], "states": await statelist_helper(task[0]["task_id"])})
         r_neighbor = task[0]["r_neighbor"]
@@ -59,7 +59,7 @@ async def statelist_helper(task_id: int) -> list:
         values = (r_neighbor, )
         state = db.select_query(sql_state, values)
         if not state:
-            return []
+            return states
         states.append({"name": state[0]["name_of_column"],
                        "subtasks": await subtasklist_helper(state[0]["column_id"])})
         r_neighbor = state[0]["r_neighbor"]
@@ -85,7 +85,7 @@ async def subtasklist_helper(state_id: int) -> list:
         values = (r_neighbor, )
         subtask = db.select_query(sql_subtask, values)
         if not subtask:
-            return []
+            return subtasks
         subtasks.append({"name": subtask[0]["subtask_name"],
                          "description": subtask[0]["description"],
                          "worker": subtask[0]["worker"]})
@@ -134,7 +134,7 @@ async def teamboarddelete(data, manager):
             sql = 'DELETE FROM teamboard where teamboard_id = %s;'
             cur.execute(sql, (teamboard,))
             for connection in [item[0] for item in manager.active_connections if item[1] in editors]:
-                await connection.send_text(json.dump(data))
+                await connection.send_text(json.dumps(data))
             return data
         else:
             raise psycopg.Error
