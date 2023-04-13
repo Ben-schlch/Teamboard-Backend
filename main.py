@@ -1,8 +1,8 @@
 import psycopg
 
-from services.users import register_user, UserBody, Credentials
+from services.users import register_user, UserBody, Credentials, confirm_token
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Response
 import logging
 import services.boardedit as boardedit
 import json
@@ -129,6 +129,15 @@ async def authenticate():
 async def register(user: UserBody):
     logging.info(f"Trying registering user {user.email}")
     return await register_user(**user.dict())
+
+
+@app.get("/confirm/{token}")
+async def confirm(token: str, response: Response):
+    if await confirm_token(token):
+        return {"message": "confirmed"}
+    else:
+        response.status_code = 404
+        return {"message": "not confirmed"}
 
 # # debug:
 # import uvicorn
