@@ -88,7 +88,8 @@ manager = ConnectionManager()
 
 # Define a WebSocket endpoint that requires JWT token authentication
 @app.websocket("/ws/{token}")
-async def websocket_endpoint(websocket: WebSocket, token: str):
+async def websocket_endpoint(websocket: WebSocket, token: str, response: Response):
+    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
     except:
@@ -120,19 +121,22 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
 # Define an HTTP endpoint that generates a JWT token given an email and password
 @app.post("/login")
-async def get_token(creds: Credentials):
+async def get_token(creds: Credentials, response: Response):
+    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     logging.info(f"Trying logging in user {creds.email}")
     return {"token": await generate_token(**creds.dict())}
 
 
 @app.post("/register/")
-async def register(user: UserBody):
+async def register(user: UserBody, response: Response):
+    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     logging.info(f"Trying registering user {user.email}")
     return await register_user(**user.dict())
 
 
 @app.get("/confirm/{token}")
 async def confirm(token: str, response: Response):
+    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     if await confirm_token(token):
         return HTMLResponse(content=html, status_code=200)
 
@@ -178,7 +182,7 @@ html = '''
 </head>
 <body>
 	<h1>Email Confirmed</h1>
-	<p>Thank you for confirming your email address.</p>
+    <p>Thank you for confirming your email address.</p>
 </body>
 </html>
 '''
