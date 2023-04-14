@@ -1,4 +1,4 @@
-from services.db import connect
+from services.db import connect, select_query
 from services.passwords import hash_and_salt, check_pw
 from services.emails import send_email
 from fastapi import HTTPException
@@ -57,11 +57,11 @@ async def login_user(email: str, pwd: str):
     :return: True if the credentials are correct, false if they are incorrect or the DBMS returns an error
     """
     # There will be only one result because the mail attribute is the PRIMARY KEY
-    with connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT pwd FROM users WHERE mail = %s", (email,))
-            res = cur.fetchone()[0]
-            return check_pw(pwd, res)
+    res = select_query("SELECT pwd, verified FROM users WHERE mail = %s", (email,))
+    if not res:
+        return False
+    res = res[0]
+    return check_pw(pwd, res["pwd"]) and res["verified"]
 
 
 async def gen_confirmation_token(email):

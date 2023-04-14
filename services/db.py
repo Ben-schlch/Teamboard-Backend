@@ -49,10 +49,11 @@ def insert_query(sql: str, params: tuple[any, ...]) -> int:
 #     return 0
 
 
-def select_query(sql: str, params: tuple) -> int or list:
+def select_query(sql: str, params: tuple) -> int or list[dict[str, any]]:
     """
     Function that executes a select query on the database.
     :return: Error code or results if successful
+    :return: Return is a list of dicts, where each dict represents a row and the keys are the column names
     """
 
     try:

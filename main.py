@@ -7,7 +7,11 @@ import logging
 import services.boardedit as boardedit
 import json
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename="teamboardlog.log",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO)
 
 app = FastAPI()
 
