@@ -1,5 +1,5 @@
 import logging
-
+import os
 from fastapi import WebSocket, HTTPException, status
 import jwt
 from services.users import login_user
@@ -7,7 +7,7 @@ from services.db import connect
 import time
 
 # Secret key used to sign JWT tokens
-SECRET_KEY = "mysecretkey"
+SECRET_KEY = os.getenv("SECRET_JWT_KEY", "secret_key")
 # Time in minutes before JWT token expires
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Algorithm to generate the jwt token
