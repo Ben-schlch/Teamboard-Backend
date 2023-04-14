@@ -28,3 +28,11 @@ Content-Type: application/json
 
 
 ###
+POST https://teamboard.server-welt.com:8000/register/
+Content-Type: application/json
+
+{
+  "name": "test",
+  "pwd": "test",
+  "email": "a@b.de"
+}

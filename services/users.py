@@ -39,7 +39,6 @@ async def register_user(name: str, email: str, pwd: str):
         # unique violation --> email adr ist bereits in der Datenbank
         if res == 23505:
             raise HTTPException(status_code=409, detail="E-Mail already exists")
-
     # Send confirmation email
     standard_url = "http://localhost:8000"
     url = os.getenv("TEAMBOARD_URL", standard_url)
