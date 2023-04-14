@@ -133,7 +133,7 @@ async def register(user: UserBody):
 @app.get("/confirm/{token}")
 async def confirm(token: str, response: Response):
     if await confirm_token(token):
-        return {html}
+        return html
     else:
         response.status_code = 401
         return {"message": "not confirmed"}
