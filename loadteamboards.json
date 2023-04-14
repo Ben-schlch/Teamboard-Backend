@@ -1,0 +1,69 @@
+[
+  {
+    "name": "Board 1",
+    "tasks": [
+      {
+        "name": "Testtask1",
+        "states": [
+          {
+            "state": "ToDo",
+            "subtasks": [
+              {
+                "name": "Subtask1",
+                "description": "test description1",
+                "worker": "Testworker1"
+              },
+              {
+                "name": "Subtask2",
+                "description": "test description2",
+                "worker": "Testworker2"
+              }
+            ]
+          },
+          {
+            "state": "Done",
+            "subtasks": [
+              {
+                "name": "Subtask3",
+                "description": "test description",
+                "worker": "Testworker2"
+              }
+            ]
+          },
+          {
+            "state": "In Progress",
+            "subtasks": []
+          }
+        ]
+      },
+      {
+        "name": "Testtask2",
+        "states": [
+          {
+            "state": "ToDo",
+            "subtasks": [
+              {
+                "name": "Subtask1",
+                "description": "test description1",
+                "worker": "Testworker1"
+              },
+              {
+                "name": "Subtask2",
+                "description": "test description2",
+                "worker": "Testworker2"
+              }
+            ]
+          },
+          {
+            "state": "In Progress",
+            "subtasks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Board 2",
+    "tasks": []
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "kind_of_object": "teamboard/task/column/subtask",
+  "type_of_edit":"create",
+  "teamboard": 1,
+  "task": 2,
+  "column": 3,
+  "oldposition": "",
+  "newposition": ""
+}
