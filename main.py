@@ -1,4 +1,5 @@
 import psycopg
+from starlette.responses import HTMLResponse
 
 from services.users import register_user, UserBody, Credentials, confirm_token
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
@@ -133,7 +134,8 @@ async def register(user: UserBody):
 @app.get("/confirm/{token}")
 async def confirm(token: str, response: Response):
     if await confirm_token(token):
-        return html
+        return HTMLResponse(content=html, status_code=200)
+
     else:
         response.status_code = 401
         return {"message": "not confirmed"}
