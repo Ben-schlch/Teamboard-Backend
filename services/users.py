@@ -41,7 +41,7 @@ async def register_user(name: str, email: str, pwd: str):
             raise HTTPException(status_code=409, detail="E-Mail already exists")
 
     # Send confirmation email
-    standard_url = "http://localhost:8080"
+    standard_url = "http://localhost:8000"
     url = os.getenv("TEAMBOARD_URL", standard_url)
     msg = (f"Hello {name},\n"
            f"Thank you for signing up for our service. please confirm your email-adress with this link:"
@@ -83,8 +83,8 @@ async def confirm_token(token, expiration=1000000):
     with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (email,))
-            res = cur.statusmessage
-    if res:
+            res = cur.rowcount
+    if not res:
         return False
     return True
 

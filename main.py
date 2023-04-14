@@ -140,7 +140,7 @@ async def confirm(token: str, response: Response):
     if await confirm_token(token):
         return {"message": "confirmed"}
     else:
-        response.status_code = 404
+        response.status_code = 401
         return {"message": "not confirmed"}
 
 # # debug:
