@@ -17,7 +17,6 @@ app = FastAPI()
 
 
 async def parse_message(websocket: WebSocket, data: dict, email: str):
-
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
@@ -65,7 +64,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case _:
-                    raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
+                    raise HTTPException(status_code=404,
+                                        detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
     except HTTPException as e:
         await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
@@ -124,11 +124,6 @@ async def get_token(creds: Credentials):
     return {"token": await generate_token(**creds.dict())}
 
 
-@app.get("/authenticate/{token}")
-async def authenticate():
-    return {"message": "Hello World"}
-
-
 @app.post("/register/")
 async def register(user: UserBody):
     logging.info(f"Trying registering user {user.email}")
@@ -138,13 +133,50 @@ async def register(user: UserBody):
 @app.get("/confirm/{token}")
 async def confirm(token: str, response: Response):
     if await confirm_token(token):
-        return {"message": "confirmed"}
+        return {html}
     else:
         response.status_code = 401
         return {"message": "not confirmed"}
 
-# # debug:
-# import uvicorn
-#
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+html = '''
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Email Confirmed</title>
+	<style>
+		body {
+			background-color: #f2f2f2;
+			font-family: Arial, sans-serif;
+			font-size: 18px;
+			color: #333;
+			margin: 0;
+			padding: 0;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+
+		h1 {
+			font-size: 48px;
+			font-weight: bold;
+			margin: 0;
+			padding: 0;
+		}
+
+		p {
+			font-size: 24px;
+			margin: 20px 0 0 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<h1>Email Confirmed</h1>
+	<p>Thank you for confirming your email address.</p>
+</body>
+</html>
+'''
