@@ -65,7 +65,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case _:
-                    raise HTTPException(status_code=404, detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
+                    raise HTTPException(status_code=404,
+                                        detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
     except HTTPException as e:
         await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
@@ -122,11 +123,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 async def get_token(creds: Credentials):
     logging.info(f"Trying logging in user {creds.email}")
     return {"token": await generate_token(**creds.dict())}
-
-
-@app.get("/authenticate/{token}")
-async def authenticate():
-    return {"message": "Hello World"}
 
 
 @app.post("/register/")
