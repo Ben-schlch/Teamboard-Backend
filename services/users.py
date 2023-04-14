@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from itsdangerous import URLSafeTimedSerializer
 import os
-
+import psycopg.errors
 
 class UserBody(BaseModel):
     name: str
@@ -32,13 +32,11 @@ async def register_user(name: str, email: str, pwd: str):
     salt, pwd = hash_and_salt(pwd)
     with connect() as conn:
         with conn.cursor() as cur:
-            cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s)",
-                        (email, name, pwd, salt))
-            res = cur.statusmessage
-    if res:
-        # unique violation --> email adr ist bereits in der Datenbank
-        if res == 23505:
-            raise HTTPException(status_code=409, detail="E-Mail already exists")
+            try:
+                cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s)",
+                            (email, name, pwd, salt))
+            except psycopg.errors.UniqueViolation:
+                raise HTTPException(status_code=409, detail="E-Mail already exists")
 
     # Send confirmation email
     standard_url = "http://localhost:8000"
