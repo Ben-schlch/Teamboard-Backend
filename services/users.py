@@ -29,12 +29,12 @@ async def register_user(name: str, email: str, pwd: str):
     """
     # TODO: catch non-valid emails and raise exceptions
     # TODO: look if the email is already in use before sending a confirmation email
-    salt, pwd = hash_and_salt(pwd)
+    pwd = hash_and_salt(pwd)
     with connect() as conn:
         with conn.cursor() as cur:
             try:
-                cur.execute("INSERT INTO users VALUES (%s, %s, %s, %s)",
-                            (email, name, pwd, salt))
+                cur.execute("INSERT INTO users VALUES (%s, %s, %s)",
+                            (email, name, pwd))
             except psycopg.errors.UniqueViolation:
                 raise HTTPException(status_code=409, detail="E-Mail already exists")
 
@@ -63,16 +63,16 @@ async def login_user(email: str, pwd: str):
 
 
 async def gen_confirmation_token(email):
-    serializer = URLSafeTimedSerializer(os.getenv("SECRET_TEAMBOARD_KEY"))
-    return serializer.dumps(email, salt=os.getenv("SECURITY_TEAMBOARD_PASSWORD_SALT"))
+    serializer = URLSafeTimedSerializer(os.getenv("SECRET_TEAMBOARD_KEY", "aaa"))
+    return serializer.dumps(email, salt=os.getenv("SECURITY_TEAMBOARD_PASSWORD_SALT", "bbb"))
 
 
 async def confirm_token(token, expiration=1000000):
-    serializer = URLSafeTimedSerializer(os.getenv("SECRET_TEAMBOARD_KEY"))
+    serializer = URLSafeTimedSerializer(os.getenv("SECRET_TEAMBOARD_KEY", "aaa"))
     try:
         email = serializer.loads(
             token,
-            salt=os.getenv("SECURITY_TEAMBOARD_PASSWORD_SALT"),
+            salt=os.getenv("SECURITY_TEAMBOARD_PASSWORD_SALT", "bbb"),
             max_age=expiration
         )
     except:

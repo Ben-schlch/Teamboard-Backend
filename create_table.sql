@@ -3,7 +3,6 @@ CREATE TABLE users
 mail varchar(320) Primary Key,
 username varchar NOT NULL,
 pwd varchar NOT NULL,
-salt varchar NOT NULL,
 verified boolean DEFAULT false,
 profilepicture BYTEA
 );
