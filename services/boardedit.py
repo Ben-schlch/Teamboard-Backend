@@ -209,7 +209,7 @@ async def columndelete(data: dict):
 async def columncreate(data):
     teamboard_id = data["teamboard_id"]
     task_id = data["task_id"]
-    column_name = data["state"]["state_name"]
+    column_name = data["state"]["state"]
     sql = 'SELECT column_id FROM task_column WHERE part_of_teamboard=%s AND part_of_task=%s and r_neighbor IS NULL;'
     values = (teamboard_id, task_id)
     with db.connect() as con:
@@ -249,7 +249,7 @@ async def columnedit(data):
     teamboard_id = data["teamboard_id"]
     task_id = data["task_id"]
     column_id = data["state"]["id"]
-    name = data["state"]["state_name"]
+    name = data["state"]["state"]
     sql = 'UPDATE task_column set name_of_column = %s ' \
           'WHERE part_of_teamboard = %s and part_of_task = %s and column_id = %s;'
     values = [name, teamboard_id, task_id, column_id]
