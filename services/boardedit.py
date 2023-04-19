@@ -13,9 +13,7 @@ async def teamboardload(email):
 
     values = (email,)
     teamboards = db.select_query(sql_teamboard, values)
-    print(teamboards)
     for t in teamboards:
-        print(t["teamboard_id"])
         t["tasks"] = await tasklist_helper(t["teamboard_id"])
     return json.dumps(teamboards)
 
