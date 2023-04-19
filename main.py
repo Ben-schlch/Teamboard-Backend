@@ -61,7 +61,9 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
         else:
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
-                    await boardedit.teamboardload(email)
+                    jason = json.dumps(await boardedit.teamboardload(email))
+                    await manager.send_personal_message(jason, websocket)  #temporary workaround
+                    return
                 case "boardadd":
                     await boardedit.teamboardcreate(data, email)
                 case _:
