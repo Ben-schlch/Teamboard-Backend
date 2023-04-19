@@ -281,6 +281,9 @@ async def subtaskcreate(data):
         else:
             l_neighbor = l_neighbor[0]
 
+        if not max_columns["worker"]:
+            max_columns = None
+
         if max_columns["deadline"] == "":
             max_columns["deadline"] = None
 
@@ -317,6 +320,8 @@ async def subtaskedit(data):
         "position": ""
     }
     max_columns.update(data["subtask"])
+    if not max_columns["worker"]:
+        max_columns["worker"] = None
 
     with db.connect() as con:
         cur = con.cursor()
