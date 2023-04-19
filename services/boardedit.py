@@ -21,24 +21,13 @@ async def teamboardload(email):
 
 
 async def tasklist_helper(teamboard_id: int) -> list:
-    sql_first_task = "SELECT task_name, task_id, r_neighbor FROM task " \
-                     "WHERE part_of_teamboard = %s AND l_neighbor is NULL"
-    sql_task = "SELECT task_name, r_neighbor, task_id FROM task WHERE task_id = %s;"
-    tasks = []
+    sql_task = "SELECT task_name, task_id FROM task " \
+                     "WHERE part_of_teamboard = %s"
     values = (teamboard_id,)
-    task = db.select_query(sql_first_task, values)
-    if not task:
-        return []
-    tasks.append({"name": task[0]["task_name"], "states": await statelist_helper(task[0]["task_id"])})
-    r_neighbor = task[0]["r_neighbor"]
-    while r_neighbor:
-        values = (r_neighbor, )
-        task = db.select_query(sql_task, values)
-        if not task:
-            return tasks
-        print(task[0])
-        tasks.append({"name": task[0]["task_name"], "states": await statelist_helper(task[0]["task_id"])})
-        r_neighbor = task[0]["r_neighbor"]
+    tasks = db.select_query(sql_task, values)
+    for task in tasks:
+        task["states"] = await statelist_helper(task["task_id"])
+        task["name"] = task.pop("task_name")
     return tasks
 
 
