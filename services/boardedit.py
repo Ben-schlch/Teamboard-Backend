@@ -40,7 +40,9 @@ async def statelist_helper(task_id: int) -> list:
     state = db.select_query(sql_first_state, values)
     if not state:
         return []
-    states.append({"name": state[0]["name_of_column"], "subtasks": await subtasklist_helper(state[0]["column_id"])})
+    states.append({"name": state[0]["name_of_column"],
+                   "subtasks": await subtasklist_helper(state[0]["column_id"]),
+                   "state_id": state[0]["column_id"]})
     r_neighbor = state[0]["r_neighbor"]
     while r_neighbor:
         values = (r_neighbor, )
@@ -48,7 +50,8 @@ async def statelist_helper(task_id: int) -> list:
         if not state:
             return states
         states.append({"name": state[0]["name_of_column"],
-                       "subtasks": await subtasklist_helper(state[0]["column_id"])})
+                       "subtasks": await subtasklist_helper(state[0]["column_id"]),
+                       "state_id": state[0]["column_id"]})
         r_neighbor = state[0]["r_neighbor"]
     return states
 
@@ -66,7 +69,8 @@ async def subtasklist_helper(state_id: int) -> list:
         return []
     subtasks.append({"name": subtask[0]["subtask_name"],
                      "description": subtask[0]["description"],
-                     "worker": subtask[0]["worker"]})
+                     "worker": subtask[0]["worker"],
+                     "subtask_id": subtask[0]["subtask_id"]})
     r_neighbor = subtask[0]["r_neighbor"]
     while r_neighbor:
         values = (r_neighbor, )
@@ -75,7 +79,8 @@ async def subtasklist_helper(state_id: int) -> list:
             return subtasks
         subtasks.append({"name": subtask[0]["subtask_name"],
                          "description": subtask[0]["description"],
-                         "worker": subtask[0]["worker"]})
+                         "worker": subtask[0]["worker"],
+                         "subtask_id": subtask[0]["subtask_id"]})
         r_neighbor = subtask[0]["r_neighbor"]
     return subtasks
 
