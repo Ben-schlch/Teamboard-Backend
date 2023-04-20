@@ -3,6 +3,8 @@ import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
 import logging
+from services.emails import request_join_email
+from services.emails import manipulate_gmail_adress
 
 
 async def teamboardload(email):
@@ -108,6 +110,32 @@ async def teamboardcreate(data, email):
         cur.execute(sql, (teamboard_id, email))
     data["teamboard"]["id"] = teamboard_id
     return data
+
+
+async def teamboardadduser(data, email):
+    # TODO: add user to editors send message to added user
+    email = manipulate_gmail_adress(email)
+    sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
+    sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
+    sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
+    with db.connect() as con:
+        cur = con.cursor()
+        cur.execute(sql_check_if_exists, (email,))
+        exists = cur.fetchone()[0]
+        exists = exists > 0
+        if not exists:
+            request_join_email(data["email"], email, data["teamboard"]["name"])
+            return
+        cur.execute(sql_check_if_editor, (data["teamboard"]["id"], email))
+        is_editor = cur.fetchone()[0]
+        is_editor = is_editor > 0
+        if is_editor:
+            return
+        cur.execute(sql_add_editor, (data["teamboard"]["id"], email))
+
+    pass
+
+
 
 
 async def teamboarddelete(data, manager):

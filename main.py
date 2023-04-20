@@ -56,6 +56,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.subtaskmove(data)
                 case "statemove":
                     await boardedit.columnmove(data)
+                case "teamboardadduser":
+                    await boardedit.teamboardadduser(data)
                 case _:
                     raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
         else:

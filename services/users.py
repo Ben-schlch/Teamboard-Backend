@@ -7,6 +7,7 @@ from itsdangerous import URLSafeTimedSerializer
 import os
 import psycopg.errors
 
+
 class UserBody(BaseModel):
     name: str
     email: str
