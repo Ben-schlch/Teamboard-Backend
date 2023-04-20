@@ -118,11 +118,18 @@ async def teamboardadduser(data, email):
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
+    sql_get_teamboard_name = "SELECT teamboard_name FROM teamboard WHERE teamboard_id = %s;"
+    # API ist bisschen sus deshalb muss man das bisschen manipulieren
+    data["teamboard"] = None
+    data["teamboard"]["id"] = int(data.pop("teamboard_id"))
     with db.connect() as con:
         cur = con.cursor()
         cur.execute(sql_check_if_exists, (email,))
         exists = cur.fetchone()[0]
         exists = exists > 0
+        cur.execute(sql_get_teamboard_name, (data["teamboard"]["id"],))
+        teamboard_name = cur.fetchone()[0]
+        data["teamboard"]["name"] = teamboard_name
         if not exists:
             request_join_email(data["email"], email, data["teamboard"]["name"])
             return
@@ -133,8 +140,11 @@ async def teamboardadduser(data, email):
             return
         cur.execute(sql_add_editor, (data["teamboard"]["id"], email))
 
-    pass
+        tasks = tasklist_helper(data["teamboard"]["id"])
+        data["tasks"] = tasks
 
+
+    pass
 
 
 
