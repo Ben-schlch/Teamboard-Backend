@@ -352,5 +352,9 @@ async def subtaskmove(data):
     column_id = data["state_id"]
     subtask_id = data["subtask"]["id"]
     newposition = data["newPosition"]
-    await positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
+    between_states = data["type_of_edit"] == "moveSubtaskBetweenStates"
+    if not between_states:
+        await positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
+    else:
+        await positioncalc.move_between_states(teamboard_id, task_id, column_id, subtask_id, newposition)
     return data

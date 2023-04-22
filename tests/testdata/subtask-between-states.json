@@ -1,0 +1,13 @@
+{"kind_of_object":"state",
+  "type_of_edit":"moveSubtaskBetweenStates",
+  "teamboard_id":5,
+  "task_id":5,
+  "state_id":4,
+  "oldPosition":0,
+  "newPosition":0,
+  "subtask":
+  {"id":4,
+    "position":0,
+    "name":"ADD USER",
+    "description":"",
+    "worker":"inf21012@lehre.dhbw-stuttgart.de"}}
