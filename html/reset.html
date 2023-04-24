@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type=password] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button[type=submit] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button[type=submit]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reset Password</h1>
+  <h2>Enter your new password below.</h2>
+  <h3>Passwords must be at least 8 characters long, contain at least one number, one upper and one lower letter.</h3>
+  <form id="reset-password-form">
+    <input type="hidden" id="email" value="">
+    <input type="hidden" id="token" value="">
+    <label for="new-password">New Password:</label>
+    <input type="password" id="new-password" name="new-password" required>
+    <label for="confirm-password">Confirm Password:</label>
+    <input type="password" id="confirm-password" name="confirm-password" required>
+    <button type="submit">Reset Password</button>
+  </form>
+  <script>
+const form = document.getElementById('reset-password-form');
+const addressToken = window.location.pathname.split('/').pop();
+const [email, token] = addressToken.split('+');
+document.getElementById('email').value = email;
+document.getElementById('token').value = token;
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const newPassword = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('confirm-password').value;
+  if (newPassword !== confirmPassword) {
+    alert('Passwords do not match. Please try again.');
+    return;
+  }
+  if (newPassword.length < 8 || !/\d/.test(newPassword)) {
+    alert('Passwords must be at least 8 characters long, contain at least one number, one upper and one lower letter.');
+    return;
+  }
+  const formData = new FormData(form);
+  const requestBody = Object.fromEntries(formData.entries());
+  fetch('/reset', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      email,
+      token,
+      password: newPassword
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      alert('Your password has been successfully reset.');
+      window.location.href = '/';
+    } else {
+      response.text().then(errorMessage => {
+    alert(`There was an error resetting your password:\n${errorMessage}`);
+    });
+  }
+  })
+  .catch(error => {
+    console.error(error);
+    alert(error);
+  });
+});
+
+  </script>
+</body>
+</html>
