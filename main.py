@@ -173,7 +173,7 @@ async def confirm(token: str, response: Response):
         return FileResponse('html/confirm_email_wrong.html')
 
 
-app.get("/send_reset_mail/{email}")
+@app.get("/send_reset_mail/{email}")
 async def send_reset(email: str, response: Response):
     """
     Sends a reset email to the user
