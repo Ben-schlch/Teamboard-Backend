@@ -152,14 +152,17 @@ async def verify_reset_token(email: str, token: str):
             with conn.cursor() as cur:
                 cur.execute(sql, (email,))
                 res = cur.fetchone()
+        print(res)
         if not res:
             return False
         res = res[0]
         if not bcrypt.checkpw(token.encode("utf-8"), res.encode("utf-8")):
+            print("Token not valid")
             return False
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp = payload.get("exp")
         if time.time() > exp:
+            print("Token expired")
             return False
 
         sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
@@ -168,7 +171,8 @@ async def verify_reset_token(email: str, token: str):
                 cur.execute(sql, (email,))
 
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
