@@ -162,7 +162,7 @@ async def verify_reset_token(email: str, token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp = payload.get("exp")
         if time.time() > exp:
-            logging.debug("Token expired")
+            logging.warning("Token expired")
             return False
 
         sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
@@ -172,7 +172,7 @@ async def verify_reset_token(email: str, token: str):
 
         return True
     except Exception as e:
-        logging.debug("Exception: " + str(e))
+        logging.warning("Exception: " + str(e))
         return False
 
 
