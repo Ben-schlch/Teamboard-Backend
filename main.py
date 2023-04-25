@@ -209,7 +209,7 @@ async def reset_pwd(request: Request, response: Response):
     token = body["token"]
     password = body["password"]
 
-    if await verify_reset_token(token, email):
+    if await verify_reset_token(email, token):
         if await check_password_complexity(password):
             await reset_password(email, password)
             return FileResponse('html/reset_success.html')
