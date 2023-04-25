@@ -110,6 +110,15 @@ async def send_reset_token(email: str):
     @param email:
     @return:
     """
+    # check if the email exists
+    sql = "SELECT count(1) FROM users WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+            res = cur.fetchone()
+    if not res:
+        return False
+
     token = await generate_reset_token()
 
     await send_reset_email(email, token)

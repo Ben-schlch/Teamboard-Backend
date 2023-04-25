@@ -25,3 +25,4 @@ async def send_reset_email(adress: str, token: str):
                                               f"Hello,\n"
                                               f"you have requested a password reset. Please use the following link to reset your password:\n"
                                               f"{os.getenv('TEAMBOARD_URL', 'localhost:8000')}/reset/{adress}+{token}")
+    return

@@ -181,8 +181,15 @@ async def send_reset(email: str, response: Response):
     :param response:
     :return:
     """
-    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
-    await send_reset_token(email)
+    if email == "":
+        response.status_code = 401
+        return
+    elif email:
+        response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
+        await send_reset_token(email)
+    else:
+        response.status_code = 401
+        return
 
 @app.get("/reset/{token}")
 async def reset_page(response: Response):
