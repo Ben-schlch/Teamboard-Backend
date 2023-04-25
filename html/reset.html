@@ -87,9 +87,7 @@ form.addEventListener('submit', (event) => {
     })
   })
   .then(response => {
-    if (response.ok) {
-      window.location.href = '/reset_success.html';
-    } else {
+    if (!response.ok) {
       response.text().then(errorMessage => {
     alert(`There was an error resetting your password:\n${errorMessage}`);
     });

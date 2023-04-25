@@ -212,7 +212,7 @@ async def reset_pwd(request: Request, response: Response):
     if await verify_reset_token(email, token):
         if await check_password_complexity(password):
             await reset_password(email, password)
-            return
+            return FileResponse('html/reset_success.html')
         else:
             return Response(status_code=401, content="Sorry but your password is not complex enough. "
                                                      "It needs to be at least 8 characters long and contain "
