@@ -87,7 +87,9 @@ form.addEventListener('submit', (event) => {
     })
   })
   .then(response => {
-    if (!response.ok) {
+    if (response.ok) {
+      alert('Your password has been successfully reset.');
+    } else {
       response.text().then(errorMessage => {
     alert(`There was an error resetting your password:\n${errorMessage}`);
     });
