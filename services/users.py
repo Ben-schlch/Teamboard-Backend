@@ -152,7 +152,7 @@ async def verify_reset_token(email: str, token: str):
             with conn.cursor() as cur:
                 cur.execute(sql, (email,))
                 res = cur.fetchone()
-        logging.info("Result of query: ", res)
+        logging.info(f"Result of query:{res}")
         if not res:
             return False
         res = res[0]
