@@ -145,6 +145,7 @@ async def verify_reset_token(email: str, token: str):
     :param token:
     :return:
     """
+    logging.info(f"Verifying token for {email}")
     try:
         sql = "SELECT reset_token FROM users WHERE mail = %s"
         with connect() as conn:
