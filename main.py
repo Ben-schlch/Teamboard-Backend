@@ -3,7 +3,7 @@ import psycopg
 from services.users import register_user, UserBody, Credentials, confirm_token, verify_reset_token, reset_password, \
     check_password_complexity, send_reset_token
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Response, Form
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Response
 from fastapi.responses import FileResponse
 from fastapi.requests import Request
 import logging
@@ -204,11 +204,10 @@ async def reset_page(response: Response):
 @app.post("/reset")
 async def reset_pwd(request: Request, response: Response):
 
-    form_data = await request.form()
-
-    email = form_data.get("email")
-    token = form_data.get("token")
-    password = form_data.get("new-password")
+    body = await request.json()
+    email = body["email"]
+    token = body["token"]
+    password = body["password"]
 
     if await verify_reset_token(token, email):
         if await check_password_complexity(password):
