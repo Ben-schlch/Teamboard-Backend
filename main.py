@@ -151,6 +151,9 @@ async def register(user: UserBody, response: Response):
     :param response:
     :return:
     """
+    if not await check_password_complexity(user.pwd):
+        response.status_code = 406
+        return {"detail": "Password not complex enough"}
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying registering user {user.email}")
     return await register_user(**user.dict())
@@ -191,6 +194,7 @@ async def send_reset(email: str, response: Response):
         response.status_code = 401
         return
 
+
 @app.get("/reset/{token}")
 async def reset_page(response: Response):
     """
@@ -203,7 +207,6 @@ async def reset_page(response: Response):
 
 @app.post("/reset")
 async def reset_pwd(request: Request, response: Response):
-
     body = await request.json()
     email = body["email"]
     token = body["token"]
@@ -214,10 +217,9 @@ async def reset_pwd(request: Request, response: Response):
             await reset_password(email, password)
             return
         else:
-            return Response(status_code=401, content="Sorry but your password is not complex enough. "
+            return Response(status_code=406, content="Sorry but your password is not complex enough. "
                                                      "It needs to be at least 8 characters long and contain "
                                                      "at least one number, one lower character and one upper character.")
     else:
-        return Response(status_code=401, content="Sorry but something went wrong. "
+        return Response(status_code=406, content="Sorry but something went wrong. "
                                                  "The link you clicked might be outdated.")
-

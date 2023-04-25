@@ -145,35 +145,30 @@ async def verify_reset_token(email: str, token: str):
     :param token:
     :return:
     """
-    logging.info(f"Verifying token for {email} and token {token}")
-    try:
-        sql = "SELECT reset_token FROM users WHERE mail = %s"
-        with connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, (email,))
-                res = cur.fetchone()
-        logging.info(f"Result of query:{res}")
-        if not res:
-            return False
-        res = res[0]
-        if not bcrypt.checkpw(token.encode("utf-8"), res.encode("utf-8")):
-            logging.debug("Token not valid")
-            return False
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        exp = payload.get("exp")
-        if time.time() > exp:
-            logging.warning("Token expired")
-            return False
-
-        sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
-        with connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, (email,))
-
-        return True
-    except Exception as e:
-        logging.warning("Exception: " + str(e))
+    logging.info(f"Verifying token for password reset of {email} ")
+    sql = "SELECT reset_token FROM users WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+            res = cur.fetchone()
+    if not res:
         return False
+    res = res[0]
+    if not bcrypt.checkpw(token.encode("utf-8"), res.encode("utf-8")):
+        logging.debug("Token not valid")
+        return False
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    exp = payload.get("exp")
+    if time.time() > exp:
+        logging.debug("Token expired")
+        return False
+
+    sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+
+    return True
 
 
 async def reset_password(email: str, password: str):
