@@ -1,7 +1,6 @@
-import datetime
+import logging
 import re
 import secrets
-import string
 import time
 
 import bcrypt
@@ -157,12 +156,12 @@ async def verify_reset_token(email: str, token: str):
             return False
         res = res[0]
         if not bcrypt.checkpw(token.encode("utf-8"), res.encode("utf-8")):
-            print("Token not valid")
+            logging.debug("Token not valid")
             return False
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp = payload.get("exp")
         if time.time() > exp:
-            print("Token expired")
+            logging.debug("Token expired")
             return False
 
         sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
@@ -172,7 +171,7 @@ async def verify_reset_token(email: str, token: str):
 
         return True
     except Exception as e:
-        print(e)
+        logging.debug("Exception: " + str(e))
         return False
 
 
