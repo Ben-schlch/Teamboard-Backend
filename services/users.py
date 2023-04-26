@@ -1,11 +1,20 @@
+import logging
+import re
+import secrets
+import time
+
+import bcrypt
+import jwt
+
 from services.db import connect, select_query
 from services.passwords import hash_and_salt, check_pw
-from services.emails import send_email
+from services.emails import send_email, send_reset_email
 from fastapi import HTTPException
 from pydantic import BaseModel
 from itsdangerous import URLSafeTimedSerializer
 import os
 import psycopg.errors
+
 
 class UserBody(BaseModel):
     name: str
@@ -86,3 +95,109 @@ async def confirm_token(token, expiration=1000000):
         return False
     return True
 
+
+SECRET_KEY = os.getenv("SECRET_RESET_KEY", "secret_key")
+# Time in minutes before JWT token expires
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# Algorithm to generate the jwt token
+ALGORITHM = "HS256"
+
+
+async def send_reset_token(email: str):
+    """
+    Send a reset token to the user
+    @param email:
+    @return:
+    """
+    # check if the email exists
+    sql = "SELECT count(1) FROM users WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+            res = cur.fetchone()
+    if not res:
+        return False
+
+    token = await generate_reset_token()
+
+    await send_reset_email(email, token)
+
+    salt = bcrypt.gensalt()
+    token = bcrypt.hashpw(token.encode("utf-8"), salt)
+    token = token.decode("utf-8")
+    sql = "UPDATE users SET reset_token = %s WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (token, email))
+
+
+async def generate_reset_token():
+    random_string = secrets.token_hex(64)
+    expiration_time = time.time() + (ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    token = jwt.encode({"token": random_string, "exp": expiration_time}, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+
+
+async def verify_reset_token(email: str, token: str):
+    """
+    Verify the reset token
+    :param email:
+    :param token:
+    :return:
+    """
+    logging.info(f"Verifying token for password reset of {email} ")
+    sql = "SELECT reset_token FROM users WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+            res = cur.fetchone()
+    if not res:
+        return False
+    res = res[0]
+    if not bcrypt.checkpw(token.encode("utf-8"), res.encode("utf-8")):
+        logging.debug("Token not valid")
+        return False
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    exp = payload.get("exp")
+    if time.time() > exp:
+        logging.debug("Token expired")
+        return False
+
+    sql = "UPDATE users SET reset_token = NULL WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (email,))
+
+    return True
+
+
+async def reset_password(email: str, password: str):
+    """
+    Reset the password of a user
+    @param email:
+    @param password:
+    @return:
+    """
+    password = hash_and_salt(password)
+    sql = "UPDATE users SET pwd = %s WHERE mail = %s"
+    with connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (password, email))
+
+
+async def check_password_complexity(password: str):
+    """
+    Check if the password is complex enough
+    Needs at least 8 characters, one uppercase and one lowercase letter and one number
+    @param password:
+    @return:
+    """
+    if len(password) < 8:
+        return False
+    if not re.search("[a-z]", password):
+        return False
+    if not re.search("[A-Z]", password):
+        return False
+    if not re.search("[0-9]", password):
+        return False
+    return True
