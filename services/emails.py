@@ -31,3 +31,10 @@ def request_join_email(email, sender_email, teamboard_name):
     message = f"Hello!\n\n{sender_email} wants to add you to the teamboard {teamboard_name}.\n\n" \
               f"Please register using this link:{os.getenv('TEAMBOARD_URL')}"
     send_email(email, "Teamboard Invitation", message)
+
+
+def custom_verify_email(email):
+    with smtplib.SMTP_SSL("smtp.gmail.com", port_email, context=context) as server:
+        if server.verify(email):
+            return True
+        else: return False
