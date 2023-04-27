@@ -88,7 +88,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "teamboarddeleteUser":
                     result = await boardedit.teamboarddeleteuser(data)
                     if not result:
-                        return;
+                        return
                     if result:
                         try:
                             websocket_deleted = \
@@ -96,7 +96,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                             await manager.send_personal_message(json.dumps(data), websocket_deleted)
                             await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
                         except IndexError:
-                            logging.info("User who was added is not online")
+                            logging.info("User who was deleted is not online")
                             await manager.send_personal_message(f"400 with {kind_of_object} {type_of_edit}", websocket)
                         return
                 case _:
