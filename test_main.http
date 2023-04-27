@@ -22,17 +22,26 @@ POST http://127.0.0.1:8000/login/
 Content-Type: application/json
 
 {
-  "email": "a@b.de",
-  "pwd": "test"
+  "email": "teamboard.projekt@gmail.com",
+  "pwd": "Hallo1234"
 }
 
 
 ###
-POST https://teamboard.server-welt.com:8000/register/
+POST https://teamboard.server-welt.com/api/register/
 Content-Type: application/json
 
 {
   "name": "test",
   "pwd": "test",
   "email": "a@b.de"
+}
+
+###
+POST https://teamboard.server-welt.com/api/login
+Content-Type: application/json
+
+{
+  "pwd": "Hallo1234",
+  "email": "testestest"
 }
