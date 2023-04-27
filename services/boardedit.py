@@ -180,6 +180,7 @@ async def teamboarddeleteuser(data):
     :return: True if successful
     """
     email = data["email"]
+    email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
