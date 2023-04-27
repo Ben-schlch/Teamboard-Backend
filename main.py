@@ -67,7 +67,9 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "statemove":
                     await boardedit.columnmove(data)
                 case "teamboardadduser":
-                    teamboard = await boardedit.teamboardadduser(data)
+                    teamboard = await boardedit.teamboardadduser(data, email)
+                    if not teamboard:
+                        return
                     try:
                         websocket_added = \
                             [result[0] for result in manager.active_connections if result[1] == data["email"]][0]

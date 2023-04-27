@@ -4,7 +4,7 @@ from services.emails import send_email
 from fastapi import HTTPException
 from pydantic import BaseModel
 from itsdangerous import URLSafeTimedSerializer
-from emails import manipulate_gmail_adress
+from services.emails import manipulate_gmail_adress
 from verify_email import verify_email
 import os
 import psycopg.errors
