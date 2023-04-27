@@ -28,8 +28,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :param email: Email of the user who is sending the message
     :return:
     """
-    kind_of_object = data["kind_of_object"]
-    type_of_edit = data["type_of_edit"]
+    kind_of_object = data["kind_of_object"].to_lower()
+    type_of_edit = data["type_of_edit"].to_lower()
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
     combined = kind_of_object + type_of_edit
     logging.info(combined)
