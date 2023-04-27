@@ -87,6 +87,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     return
                 case "teamboarddeleteUser":
                     result = await boardedit.teamboarddeleteuser(data)
+                    if not result:
+                        return;
                     if result:
                         try:
                             websocket_deleted = \
