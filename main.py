@@ -1,9 +1,11 @@
 import psycopg
-from starlette.responses import HTMLResponse
 
-from services.users import register_user, UserBody, Credentials, confirm_token
+from services.users import register_user, UserBody, Credentials, confirm_token, verify_reset_token, reset_password, \
+    check_password_complexity, send_reset_token
 from services.connectionmanager import ConnectionManager, verify_token, generate_token
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Response
+from fastapi.responses import FileResponse
+from fastapi.requests import Request
 import logging
 import services.boardedit as boardedit
 import json
@@ -65,6 +67,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                 case "subtaskdelete":
                     await boardedit.subtaskdelete(data)
                 case "subtaskmove":
+                    await boardedit.subtaskmove(data)
+                case "statemoveSubtaskBetweenStates":
                     await boardedit.subtaskmove(data)
                 case "statemove":
                     await boardedit.columnmove(data)
@@ -140,7 +144,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
-    except:
+    except Exception:
         await websocket.close()
     else:
         # Handle WebSocket connection
@@ -178,17 +182,24 @@ async def get_token(creds: Credentials, response: Response):
     """
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying logging in user {creds.email}")
-    return {"token": await generate_token(**creds.dict())}
+    try:
+        return {"token": await generate_token(**creds.dict())}
+    except HTTPException as e:
+        response.status_code = e.status_code
+        return {"detail": e.detail}
 
 
 @app.post("/register/")
 async def register(user: UserBody, response: Response):
     """
-    Endpoint for registering a new user
-    :param user: UserBody (pwd, email, name)
+    Registers the user and sends a confirmation email which needs to be confirmed before login
+    :param user:
     :param response:
     :return:
     """
+    if not await check_password_complexity(user.pwd):
+        response.status_code = 406
+        return {"detail": "Password not complex enough"}
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying registering user {user.email}")
     return await register_user(**user.dict())
@@ -197,59 +208,64 @@ async def register(user: UserBody, response: Response):
 @app.get("/confirm/{token}")
 async def confirm(token: str, response: Response):
     """
-    Endpoint for confirming a new user email
-    (he is recieving an mail where he needs to click a link)
-    :param token: some kind of hash
+    Confirms the email address of the user
+    :param token:
     :param response:
     :return:
     """
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     if await confirm_token(token):
-        return HTMLResponse(content=html, status_code=200)
+        return FileResponse('html/confirm_mail.html')
 
     else:
         response.status_code = 401
-        return {"message": "not confirmed"}
+        return FileResponse('html/confirm_email_wrong.html')
 
 
-html = '''
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Email Confirmed</title>
-	<style>
-		body {
-			background-color: #f2f2f2;
-			font-family: Arial, sans-serif;
-			font-size: 18px;
-			color: #333;
-			margin: 0;
-			padding: 0;
-			text-align: center;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-		}
+@app.get("/send_reset_mail/{email}")
+async def send_reset(email: str, response: Response):
+    """
+    Sends a reset email to the user
+    :param email:
+    :param response:
+    :return:
+    """
+    if email == "":
+        response.status_code = 401
+        return
+    elif email:
+        response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
+        await send_reset_token(email)
+    else:
+        response.status_code = 401
+        return
 
-		h1 {
-			font-size: 48px;
-			font-weight: bold;
-			margin: 0;
-			padding: 0;
-		}
 
-		p {
-			font-size: 24px;
-			margin: 20px 0 0 0;
-			padding: 0;
-		}
-	</style>
-</head>
-<body>
-	<h1>Email Confirmed</h1>
-    <p>Thank you for confirming your email address.</p>
-</body>
-</html>
-'''
+@app.get("/reset/{token}")
+async def reset_page(response: Response):
+    """
+    Reset the password of the user
+    :param response:
+    :return:
+    """
+    return FileResponse('html/reset.html')
+
+
+@app.post("/reset")
+async def reset_pwd(request: Request, response: Response):
+    body = await request.json()
+    email = body["email"]
+    token = body["token"]
+    password = body["password"]
+
+    if await verify_reset_token(email, token):
+        if await check_password_complexity(password):
+            await reset_password(email, password)
+            return
+        else:
+            return Response(status_code=406, content="Sorry but your password is not complex enough. "
+                                                     "It needs to be at least 8 characters long and contain "
+                                                     "at least one number, one lower character and one upper character.")
+    else:
+        return Response(status_code=406, content="Sorry but something went wrong. "
+                                                 "The link you clicked might be outdated.")

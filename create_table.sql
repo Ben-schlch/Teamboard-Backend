@@ -4,7 +4,8 @@ mail varchar(320) Primary Key,
 username varchar NOT NULL,
 pwd varchar NOT NULL,
 verified boolean DEFAULT false,
-profilepicture BYTEA
+profilepicture BYTEA,
+reset_token varchar
 );
 
 CREATE TABLE teamboard
