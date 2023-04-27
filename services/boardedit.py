@@ -129,10 +129,11 @@ async def teamboardcreate(data, email):
     return data
 
 
-async def teamboardadduser(data):
+async def teamboardadduser(data, sender_email):
     """
-    Adds a editor to a teamboard
-    :param data: json with teamboard_id and email
+    Adds an editor to a teamboard
+    :param data: json with teamboard_id and receiver-email
+    :param sender_email: email of the user who wants to add a new editor
     :return: A teamboard in json-format including all data in it for the new editor
     """
     email = data["email"]
@@ -154,7 +155,7 @@ async def teamboardadduser(data):
         teamboard_name = cur.fetchone()[0]
         data["teamboard"]["name"] = teamboard_name
         if not exists:
-            request_join_email(data["email"], email, data["teamboard"]["name"])
+            request_join_email(email, sender_email, data["teamboard"]["name"])
             return
         cur.execute(sql_check_if_editor, (data["teamboard"]["id"], email))
         is_editor = cur.fetchone()[0]

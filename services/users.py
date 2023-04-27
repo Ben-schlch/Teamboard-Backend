@@ -4,6 +4,8 @@ from services.emails import send_email
 from fastapi import HTTPException
 from pydantic import BaseModel
 from itsdangerous import URLSafeTimedSerializer
+from emails import manipulate_gmail_adress
+from verify_email import verify_email
 import os
 import psycopg.errors
 
@@ -30,6 +32,9 @@ async def register_user(name: str, email: str, pwd: str):
     """
     # TODO: catch non-valid emails and raise exceptions
     # TODO: look if the email is already in use before sending a confirmation email
+    if not verify_email(email):
+        raise HTTPException(status_code=400, detail="Invalid E-Mail")
+    email = manipulate_gmail_adress(email)
     pwd = hash_and_salt(pwd)
     with connect() as conn:
         with conn.cursor() as cur:

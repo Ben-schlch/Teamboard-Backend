@@ -22,6 +22,7 @@ def manipulate_gmail_adress(adress: str):
     if "@gmail" in adress:
         first, second = adress.split("@")
         first = first.replace(".", "")
+        first = first.replace("+", "")
         adress = f"{first}@{second}"
     return adress
 
