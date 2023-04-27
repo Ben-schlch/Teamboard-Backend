@@ -28,8 +28,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :param email: Email of the user who is sending the message
     :return:
     """
-    kind_of_object = data["kind_of_object"].to_lower()
-    type_of_edit = data["type_of_edit"].to_lower()
+    kind_of_object = data["kind_of_object"]
+    type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
     combined = kind_of_object + type_of_edit
     logging.info(combined)
@@ -66,7 +66,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.subtaskmove(data)
                 case "statemove":
                     await boardedit.columnmove(data)
-                case "teamboardadduser":
+                case "teamboardaddUser":
                     teamboard = await boardedit.teamboardadduser(data, email)
                     if not teamboard:
                         return
@@ -79,7 +79,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                         logging.info("User who was added is not online")
                         await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
                     return
-                case "teamboarddeleteuser":
+                case "teamboarddeleteUser":
                     result = await boardedit.teamboarddeleteuser(data)
                     if result:
                         try:
