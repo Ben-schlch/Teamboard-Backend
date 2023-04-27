@@ -136,6 +136,7 @@ async def teamboardadduser(data, sender_email):
     :param sender_email: email of the user who wants to add a new editor
     :return: A teamboard in json-format including all data in it for the new editor
     """
+    logging.info("Trying to add user to teamboard")
     email = data["email"]
     # TODO: add user to editors send message to added user
     email = manipulate_gmail_adress(email)
@@ -156,11 +157,13 @@ async def teamboardadduser(data, sender_email):
         data["teamboard"]["name"] = teamboard_name
         if not exists:
             request_join_email(email, sender_email, data["teamboard"]["name"])
+            logging.info("Requested user does not exist; email sent")
             return
         cur.execute(sql_check_if_editor, (data["teamboard"]["id"], email))
         is_editor = cur.fetchone()[0]
         is_editor = is_editor > 0
         if is_editor:
+            logging.info("Requested user is already an editor")
             return
         cur.execute(sql_add_editor, (data["teamboard"]["id"], email))
 
