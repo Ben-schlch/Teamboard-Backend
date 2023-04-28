@@ -37,8 +37,6 @@ async def register_user(name: str, email: str, pwd: str):
     :param pwd: Pw of the user. Will be salted+hashed before saving it in the database.
     :return: Returns nothing, but might raise exceptions.
     """
-    # TODO: catch non-valid emails and raise exceptions
-    # TODO: look if the email is already in use before sending a confirmation email
     if not custom_verify_email(email):
         raise HTTPException(status_code=400, detail="Invalid email")
     email = manipulate_gmail_adress(email)
@@ -57,7 +55,7 @@ async def register_user(name: str, email: str, pwd: str):
     msg = (f"Hello {name},\n"
            f"Thank you for signing up for our service. please confirm your email-adress with this link:"
            f"{url}/confirm/{await gen_confirmation_token(email)}")
-    send_email(email, "Confirm your teamboard-adress", msg)
+    await send_email(email, "Confirm your teamboard-adress", msg)
 
 
 async def login_user(email: str, pwd: str):
