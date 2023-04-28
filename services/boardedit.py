@@ -138,7 +138,6 @@ async def teamboardadduser(data, sender_email):
     """
     logging.info("Trying to add user to teamboard")
     email = data["email"]
-    # TODO: add user to editors send message to added user
     email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
@@ -195,6 +194,8 @@ async def teamboarddeleteuser(data):
             if is_editor:
                 sql = "DELETE FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
                 cur.execute(sql, (data["teamboard_id"], email))
+                data["teamboard"] = {}
+                data["teamboard"]["id"] = data.pop("teamboard_id")
                 data["type_of_edit"] = "delete"
                 data["kind_of_object"] = "board"
                 return data
