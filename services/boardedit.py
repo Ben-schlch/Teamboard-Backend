@@ -195,7 +195,9 @@ async def teamboarddeleteuser(data):
             if is_editor:
                 sql = "DELETE FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
                 cur.execute(sql, (data["teamboard_id"], email))
-            return data
+                data["type_of_edit"] = "delete"
+                data["kind_of_object"] = "board"
+                return data
     return False
 
 
