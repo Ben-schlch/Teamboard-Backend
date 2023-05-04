@@ -66,7 +66,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.subtaskedit(data)
                 case "subtaskdelete":
                     await boardedit.subtaskdelete(data)
-                case "statemoveSubtaskInStatek":
+                case "statemoveSubtaskInState":
                     await boardedit.subtaskmove(data)
                 case "statemoveSubtaskBetweenStates":
                     await boardedit.subtaskmove(data)
