@@ -143,7 +143,7 @@ async def teamboardadduser(data, sender_email):
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
     sql_get_teamboard_name = "SELECT teamboard_name FROM teamboard WHERE teamboard_id = %s;"
-    # API ist bisschen sus deshalb muss man das bisschen manipulieren
+    # API ist bisschen sus, deshalb muss man das bisschen manipulieren
     data["teamboard"] = {}
     data["teamboard"]["id"] = int(data.pop("teamboard_id"))
     with db.connect() as con:
