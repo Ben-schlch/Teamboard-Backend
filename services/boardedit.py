@@ -166,8 +166,8 @@ async def teamboardadduser(data, sender_email):
             return
         cur.execute(sql_add_editor, (data["teamboard"]["id"], email))
 
-        tasks = tasklist_helper(data["teamboard"]["id"])
-        data["tasks"] = tasks
+        tasks = await tasklist_helper(data["teamboard"]["id"])
+        data["teamboard"]["tasks"] = tasks
 
     return data
 

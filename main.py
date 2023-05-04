@@ -32,6 +32,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :return:
     """
     email = manipulate_gmail_adress(email)
+    data["email"] = manipulate_gmail_adress(data.pop("email", None))
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
@@ -79,7 +80,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     try:
                         websocket_added = \
                             [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
-                        await manager.send_personal_message(teamboard, websocket_added)
+                        await manager.send_personal_message(json.dumps(data), websocket_added)
                         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
                     except IndexError:
                         logging.info("User who was added is not online")
@@ -146,6 +147,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
+        email = manipulate_gmail_adress(email)
     except Exception:
         await websocket.close()
     else:
