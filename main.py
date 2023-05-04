@@ -32,7 +32,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :return:
     """
     email = manipulate_gmail_adress(email)
-    data["email"] = manipulate_gmail_adress(data.pop("email", None))
+    data["email"] = manipulate_gmail_adress(data.pop("email", ""))
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
