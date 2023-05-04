@@ -155,7 +155,7 @@ async def teamboardadduser(data, sender_email):
         teamboard_name = cur.fetchone()[0]
         data["teamboard"]["name"] = teamboard_name
         if not exists:
-            request_join_email(email, sender_email, data["teamboard"]["name"])
+            await request_join_email(email, sender_email, data["teamboard"]["name"])
             logging.info("Requested user does not exist; email sent")
             return
         cur.execute(sql_check_if_editor, (data["teamboard"]["id"], email))

@@ -9,7 +9,7 @@ class Test(IsolatedAsyncioTestCase):
         print(res)
 
     async def test_teamboardcreate(self):
-        res = await teamboardcreate(json.loads('{"kind_of_object": "board", "type_of_edit": "add", "teamboard": {"id": 24, "name": "oof", "tasks": []}}'), "inf21034@lehre.dhbw-stuttgart.de")
+        res = await teamboardcreate(json.loads('{"kind_of_object": "board", "type_of_edit": "add", "teamboard": {"id": -1, "name": "oof", "tasks": []}}'), "inf21034@lehre.dhbw-stuttgart.de")
         print(res)
 
     async def test_teamboardadduser(self):
