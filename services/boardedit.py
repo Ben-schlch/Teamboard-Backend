@@ -460,24 +460,14 @@ async def subtaskedit(data):
 
     with db.connect() as con:
         cur = con.cursor()
-        sql=""
-        values = ""
-        if max_columns["deadline"] == "":
-            sql = "UPDATE subtask " \
-                  "SET subtask_name = %s, created = %s, color = %s, description = %s, worker = %s " \
-                  "WHERE part_of_teamboard = %s and part_of_task = %s and part_of_column = %s and subtask_id = %s;"
-            values = (max_columns["name"], max_columns["created"], max_columns["color"],
-                      max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task_id"],
-                      data["state_id"],
-                      data["subtask"]["id"])
-        else:
-            sql = "UPDATE subtask " \
-                  "SET subtask_name = %s, created = %s, deadline = %s, color = %s, description = %s, worker = %s " \
-                  "WHERE part_of_teamboard = %s and part_of_task = %s and part_of_column = %s and subtask_id = %s;"
-            values = (max_columns["name"], max_columns["created"], max_columns["deadline"], max_columns["color"],
-                      max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task_id"],
-                      data["state_id"],
-                      data["subtask"]["id"])
+        sql = "UPDATE subtask " \
+              "SET subtask_name = %s, deadline = %s, color = %s, description = %s, worker = %s " \
+              "WHERE part_of_teamboard = %s and part_of_task = %s and part_of_column = %s and subtask_id = %s;"
+        values = (max_columns["name"], max_columns["deadline"], max_columns["color"],
+                  max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task_id"],
+                  data["state_id"],
+                  data["subtask"]["id"])
+
         values = tuple(None if v == "" else v for v in values)
         cur.execute(sql, values)
     return data
