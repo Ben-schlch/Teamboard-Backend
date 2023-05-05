@@ -154,9 +154,11 @@ async def register(user: UserBody, response: Response):
     if not await check_password_complexity(user.pwd):
         response.status_code = 406
         return {"detail": "Password not complex enough"}
-    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying registering user {user.email}")
-    return await register_user(**user.dict())
+    try:
+        return await register_user(**user.dict())
+    except HTTPException as e:
+        response.status =  e.status_code
 
 
 @app.get("/confirm/{token}")
@@ -188,7 +190,6 @@ async def send_reset(email: str, response: Response):
         response.status_code = 401
         return
     elif email:
-        response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
         await send_reset_token(email)
     else:
         response.status_code = 401

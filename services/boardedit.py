@@ -314,6 +314,8 @@ async def subtaskedit(data):
     max_columns.update(data["subtask"])
     if not max_columns["worker"]:
         max_columns["worker"] = None
+    if not max_columns["deadline"]:
+        max_columns["deadline"] = None
 
     with db.connect() as con:
         cur = con.cursor()
