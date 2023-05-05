@@ -51,6 +51,7 @@ async def register_user(name: str, email: str, pwd: str):
             except psycopg.errors.UniqueViolation:
                 raise HTTPException(status_code=409, detail="E-Mail already exists")
 
+    logging.info("Send registration email to %s", email)
     # Send confirmation email
     standard_url = "http://localhost:8000"
     url = os.getenv("TEAMBOARD_URL", standard_url)
