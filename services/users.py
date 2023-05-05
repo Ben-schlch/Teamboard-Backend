@@ -118,7 +118,9 @@ async def send_reset_token(email: str):
         with conn.cursor() as cur:
             cur.execute(sql, (email,))
             res = cur.fetchone()
+            logging.debug(res)
     if not res:
+
         return False
 
     token = await generate_reset_token()

@@ -242,10 +242,12 @@ async def move_between_states(teamboard_id, task_id, column_id, subtask_id, new_
                     "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
                     (left_neighbor, right_neighbor, column_id, teamboard_id, task_id, old_column_id, subtask_id))
         # update the neighbors of the subtask
-        cur.execute("UPDATE subtask SET r_neighbor = %s "
-                    "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                    (subtask_id, teamboard_id, task_id, column_id, left_neighbor))
-        cur.execute("UPDATE subtask SET l_neighbor = %s "
-                    "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                    (subtask_id, teamboard_id, task_id, column_id, right_neighbor))
+        if left_neighbor:
+            cur.execute("UPDATE subtask SET r_neighbor = %s "
+                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                        (subtask_id, teamboard_id, task_id, column_id, left_neighbor))
+        if right_neighbor:
+            cur.execute("UPDATE subtask SET l_neighbor = %s "
+                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                        (subtask_id, teamboard_id, task_id, column_id, right_neighbor))
     return 1

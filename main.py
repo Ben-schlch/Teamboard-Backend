@@ -258,7 +258,7 @@ async def reset_page(response: Response):
 @app.post("/reset")
 async def reset_pwd(request: Request, response: Response):
     body = await request.json()
-    email = body["email"]
+    email = manipulate_gmail_adress(body["email"])
     token = body["token"]
     password = body["password"]
 
