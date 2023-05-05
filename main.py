@@ -9,6 +9,7 @@ from fastapi.requests import Request
 import logging
 import services.boardedit as boardedit
 import json
+from services.emails import manipulate_gmail_adress
 
 logging.basicConfig(filename="teamboardlog.log",
                     filemode='a',
@@ -20,6 +21,17 @@ app = FastAPI()
 
 
 async def parse_message(websocket: WebSocket, data: dict, email: str):
+    """
+    Parses the message and calls the corresponding function.
+    Catches JSON DEcode errors and tries to send a message to the client(s).
+    Sends the changes to the needed people.
+    Checks if the user is allowed to edit the board.
+    :param websocket: WebSocket
+    :param data: JSON Message
+    :param email: Email of the user who is sending the message
+    :return:
+    """
+    email = manipulate_gmail_adress(email)
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
@@ -60,8 +72,35 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.subtaskmove(data)
                 case "statemove":
                     await boardedit.columnmove(data)
+                case "teamboardaddUser":
+                    teamboard = await boardedit.teamboardadduser(data, email)
+                    if not teamboard:
+                        return
+                    try:
+                        websocket_added = \
+                            [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
+                        await manager.send_personal_message(teamboard, websocket_added)
+                        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+                    except IndexError:
+                        logging.info("User who was added is not online")
+                        await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
+                    return
+                case "teamboarddeleteUser":
+                    result = await boardedit.teamboarddeleteuser(data)
+                    if not result:
+                        return
+                    if result:
+                        try:
+                            websocket_deleted = \
+                                [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
+                            await manager.send_personal_message(json.dumps(data), websocket_deleted)
+                            await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+                        except IndexError:
+                            logging.info("User who was deleted is not online")
+                            await manager.send_personal_message(f"400 with {kind_of_object} {type_of_edit}", websocket)
+                        return
                 case _:
-                    raise HTTPException(status_code=404, detail=f"404 {kind_of_object} {type_of_edit}")
+                    raise HTTPException(status_code=404, detail=f"400 with {kind_of_object} {type_of_edit}")
         else:
             match combined:  # [teamboard, task, column, subtask]+[edit,create,delete,(move, load)]
                 case "boardload":
@@ -95,6 +134,15 @@ manager = ConnectionManager()
 # Define a WebSocket endpoint that requires JWT token authentication
 @app.websocket("/ws/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str, response: Response):
+    """
+    Handles the websocket connection.
+    Communication of all edits/loads/...
+    Authentication by using a JWT token acqquired by the login endpoint
+    :param websocket: websocket
+    :param token: JWT Token str from login endpoint
+    :param response:
+    :return:
+    """
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
@@ -129,10 +177,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
 @app.post("/login")
 async def get_token(creds: Credentials, response: Response):
     """
-    Logs in the user checking the credentials and retuning a token
-    :param creds:
+    Endpoint for logging in --> returns a JWT token with 30 min validity
+    :param creds: Credentials (pwd and email)
     :param response:
-    :return: JWT Token
+    :return:
     """
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying logging in user {creds.email}")
