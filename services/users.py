@@ -57,7 +57,7 @@ async def register_user(name: str, email: str, pwd: str):
     msg = (f"Hello {name},\n"
            f"Thank you for signing up for our service. please confirm your email-adress with this link:"
            f"{url}/confirm/{await gen_confirmation_token(email)}")
-    send_email(email, "Confirm your teamboard-adress", msg)
+    await send_email(email, "Confirm your teamboard-adress", msg)
 
 
 async def login_user(email: str, pwd: str):
