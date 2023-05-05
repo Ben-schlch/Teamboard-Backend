@@ -1,3 +1,4 @@
+import logging
 import os
 import smtplib
 import ssl
@@ -12,6 +13,7 @@ context = ssl.create_default_context()
 
 
 async def send_email(adress: str, subject: str, message: str):
+    logging.info(f"Sending registration email to {adress} with subject: {subject}")
     with smtplib.SMTP_SSL("smtp.gmail.com", port_email, context=context) as server:
         server.login(gmail_adress, password_email)
         server.sendmail(gmail_adress, adress, f"Subject: {subject}\n\n{message}")
