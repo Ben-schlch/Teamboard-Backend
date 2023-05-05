@@ -221,7 +221,7 @@ async def move_between_states(teamboard_id, task_id, column_id, subtask_id, new_
     with connect() as con:
         # get the first subtask of the list
         cur = con.cursor()
-        cur.execute("SELECT l_neighbor, r_neighbor FROM subtask WHERE "
+        cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
                     "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND l_neighbor is NULL",
                     (teamboard_id, task_id, column_id,))
         row = cur.fetchone()
