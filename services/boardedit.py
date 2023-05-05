@@ -249,8 +249,8 @@ async def teamboardedit(data):
 async def taskcreate(data):
     """
     Creates a task in the database
-    :param data: dict
-    :return: dict with the new task id
+    :param data: dict.
+    :return: dict. with the new task id
     """
     teamboard_id = data["teamboard_id"]
     task_name = data["task"]["name"]
@@ -269,10 +269,10 @@ async def taskcreate(data):
 async def taskdelete(data):
     """
     Deletes a task from the database by id
-    :param data: dict
-    :return: dict
+    :param data: dict.
+    :return: dict.
     """
-    teamboard_id = data["teamboard_id"]
+    teamboard_id = data["teamboard"]["id"]
     task_id = data["task"]["id"]
     sql = 'DELETE FROM task where  task_id = %s and part_of_teamboard = %s;'
     with db.connect() as con:
