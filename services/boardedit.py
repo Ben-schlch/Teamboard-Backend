@@ -457,10 +457,6 @@ async def subtaskedit(data):
         "position": ""
     }
     max_columns.update(data["subtask"])
-    if not max_columns["worker"]:
-        max_columns["worker"] = None
-    if not max_columns["deadline"]:
-        max_columns["deadline"] = None
 
     with db.connect() as con:
         cur = con.cursor()
@@ -471,6 +467,8 @@ async def subtaskedit(data):
                   max_columns["description"], max_columns["worker"], data["teamboard_id"], data["task_id"],
                   data["state_id"],
                   data["subtask"]["id"])
+
+        values = tuple(None if v == "" else v for v in values)
         cur.execute(sql, values)
     return data
 
