@@ -9,7 +9,6 @@ from fastapi.requests import Request
 import logging
 import services.boardedit as boardedit
 import json
-from services.emails import manipulate_gmail_adress
 
 logging.basicConfig(filename="teamboardlog.log",
                     filemode='a',
@@ -31,8 +30,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :param email: Email of the user who is sending the message
     :return:
     """
-    email = manipulate_gmail_adress(email)
-    data["email"] = manipulate_gmail_adress(data.pop("email", ""))
+
+
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
@@ -147,7 +146,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
     response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
-        email = manipulate_gmail_adress(email)
     except Exception:
         await websocket.close()
     else:
@@ -258,7 +256,6 @@ async def reset_page(response: Response):
 @app.post("/reset")
 async def reset_pwd(request: Request, response: Response):
     body = await request.json()
-    email = manipulate_gmail_adress(body["email"])
     token = body["token"]
     password = body["password"]
 

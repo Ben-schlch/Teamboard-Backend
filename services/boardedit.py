@@ -4,7 +4,6 @@ import services.db as db
 import services.positioncalc as positioncalc
 import logging
 from services.emails import request_join_email
-from services.emails import manipulate_gmail_adress
 
 
 async def teamboardload(email):
@@ -138,7 +137,6 @@ async def teamboardadduser(data, sender_email):
     """
     logging.info("Trying to add user to teamboard")
     email = data["email"]
-    email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
@@ -179,7 +177,6 @@ async def teamboarddeleteuser(data):
     :return: True if successful
     """
     email = data["email"]
-    email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     with db.connect() as con:

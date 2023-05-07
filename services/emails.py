@@ -17,13 +17,13 @@ async def send_email(adress: str, subject: str, message: str):
         server.sendmail(gmail_adress, adress, f"Subject: {subject}\n\n{message}")
 
 
-def manipulate_gmail_adress(adress: str):
-    if "@gmail" in adress:
-        first, second = adress.split("@")
-        first = first.replace(".", "")
-        first = first.replace("+", "")
-        adress = f"{first}@{second}"
-    return adress
+# def manipulate_gmail_adress(adress: str):
+#     if "@gmail" in adress:
+#         first, second = adress.split("@")
+#         first = first.replace(".", "")
+#         first = first.replace("+", "")
+#         adress = f"{first}@{second}"
+#     return adress
 
 
 async def request_join_email(email, sender_email, teamboard_name):
