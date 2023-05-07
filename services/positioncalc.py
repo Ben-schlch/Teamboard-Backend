@@ -229,7 +229,7 @@ async def move_between_states(teamboard_id, task_id, column_id, subtask_id, new_
         if not row:
             new_position = 0
         # iterate until finding the position
-        for i in range(new_position):
+        for i in range(1, new_position):
             cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
                         "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND subtask_id = %s",
                         (teamboard_id, task_id, column_id, right_neighbor))
