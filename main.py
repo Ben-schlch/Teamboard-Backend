@@ -9,7 +9,6 @@ from fastapi.requests import Request
 import logging
 import services.boardedit as boardedit
 import json
-from services.emails import manipulate_gmail_adress
 
 logging.basicConfig(filename="teamboardlog.log",
                     filemode='a',
@@ -31,7 +30,8 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
     :param email: Email of the user who is sending the message
     :return:
     """
-    email = manipulate_gmail_adress(email)
+
+
     kind_of_object = data["kind_of_object"]
     type_of_edit = data["type_of_edit"]
     boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
@@ -66,7 +66,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.subtaskedit(data)
                 case "subtaskdelete":
                     await boardedit.subtaskdelete(data)
-                case "subtaskmove":
+                case "statemoveSubtaskInState":
                     await boardedit.subtaskmove(data)
                 case "statemoveSubtaskBetweenStates":
                     await boardedit.subtaskmove(data)
@@ -79,7 +79,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     try:
                         websocket_added = \
                             [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
-                        await manager.send_personal_message(teamboard, websocket_added)
+                        await manager.send_personal_message(json.dumps(data), websocket_added)
                         await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
                     except IndexError:
                         logging.info("User who was added is not online")
@@ -257,7 +257,6 @@ async def reset_page(response: Response):
 @app.post("/reset")
 async def reset_pwd(request: Request, response: Response):
     body = await request.json()
-    email = body["email"]
     token = body["token"]
     password = body["password"]
 

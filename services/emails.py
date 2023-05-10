@@ -19,19 +19,19 @@ async def send_email(adress: str, subject: str, message: str):
         server.sendmail(gmail_adress, adress, f"Subject: {subject}\n\n{message}")
 
 
-def manipulate_gmail_adress(adress: str):
-    if "@gmail" in adress:
-        first, second = adress.split("@")
-        first = first.replace(".", "")
-        first = first.replace("+", "")
-        adress = f"{first}@{second}"
-    return adress
+# def manipulate_gmail_adress(adress: str):
+#     if "@gmail" in adress:
+#         first, second = adress.split("@")
+#         first = first.replace(".", "")
+#         first = first.replace("+", "")
+#         adress = f"{first}@{second}"
+#     return adress
 
 
-def request_join_email(email, sender_email, teamboard_name):
+async def request_join_email(email, sender_email, teamboard_name):
     message = f"Hello!\n\n{sender_email} wants to add you to the teamboard {teamboard_name}.\n\n" \
               f"Please register using this link:{os.getenv('TEAMBOARD_URL')}"
-    send_email(email, "Teamboard Invitation", message)
+    await send_email(email, "Teamboard Invitation", message)
 
 
 def custom_verify_email(email):

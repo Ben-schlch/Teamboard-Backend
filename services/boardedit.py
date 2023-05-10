@@ -4,7 +4,6 @@ import services.db as db
 import services.positioncalc as positioncalc
 import logging
 from services.emails import request_join_email
-from services.emails import manipulate_gmail_adress
 
 
 async def teamboardload(email):
@@ -138,13 +137,11 @@ async def teamboardadduser(data, sender_email):
     """
     logging.info("Trying to add user to teamboard")
     email = data["email"]
-    # TODO: add user to editors send message to added user
-    email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     sql_add_editor = "INSERT INTO teamboard_editors (teamboard, editor) VALUES (%s, %s);"
     sql_get_teamboard_name = "SELECT teamboard_name FROM teamboard WHERE teamboard_id = %s;"
-    # API ist bisschen sus deshalb muss man das bisschen manipulieren
+    # API ist bisschen sus, deshalb muss man das bisschen manipulieren
     data["teamboard"] = {}
     data["teamboard"]["id"] = int(data.pop("teamboard_id"))
     with db.connect() as con:
@@ -156,7 +153,7 @@ async def teamboardadduser(data, sender_email):
         teamboard_name = cur.fetchone()[0]
         data["teamboard"]["name"] = teamboard_name
         if not exists:
-            request_join_email(email, sender_email, data["teamboard"]["name"])
+            await request_join_email(email, sender_email, data["teamboard"]["name"])
             logging.info("Requested user does not exist; email sent")
             return
         cur.execute(sql_check_if_editor, (data["teamboard"]["id"], email))
@@ -167,8 +164,8 @@ async def teamboardadduser(data, sender_email):
             return
         cur.execute(sql_add_editor, (data["teamboard"]["id"], email))
 
-        tasks = tasklist_helper(data["teamboard"]["id"])
-        data["tasks"] = tasks
+        tasks = await tasklist_helper(data["teamboard"]["id"])
+        data["teamboard"]["tasks"] = tasks
 
     return data
 
@@ -180,7 +177,6 @@ async def teamboarddeleteuser(data):
     :return: True if successful
     """
     email = data["email"]
-    email = manipulate_gmail_adress(email)
     sql_check_if_exists = "SELECT COUNT(1) FROM users WHERE mail = %s;"
     sql_check_if_editor = "SELECT COUNT(1) FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
     with db.connect() as con:
@@ -195,7 +191,11 @@ async def teamboarddeleteuser(data):
             if is_editor:
                 sql = "DELETE FROM teamboard_editors WHERE teamboard = %s AND editor = %s;"
                 cur.execute(sql, (data["teamboard_id"], email))
-            return data
+                data["teamboard"] = {}
+                data["teamboard"]["id"] = data.pop("teamboard_id")
+                data["type_of_edit"] = "delete"
+                data["kind_of_object"] = "board"
+                return data
     return False
 
 
@@ -246,8 +246,8 @@ async def teamboardedit(data):
 async def taskcreate(data):
     """
     Creates a task in the database
-    :param data: dict
-    :return: dict with the new task id
+    :param data: dict.
+    :return: dict. with the new task id
     """
     teamboard_id = data["teamboard_id"]
     task_name = data["task"]["name"]
@@ -266,10 +266,10 @@ async def taskcreate(data):
 async def taskdelete(data):
     """
     Deletes a task from the database by id
-    :param data: dict
-    :return: dict
+    :param data: dict.
+    :return: dict.
     """
-    teamboard_id = data["teamboard_id"]
+    teamboard_id = data["teamboard"]["id"]
     task_id = data["task"]["id"]
     sql = 'DELETE FROM task where  task_id = %s and part_of_teamboard = %s;'
     with db.connect() as con:

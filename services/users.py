@@ -12,7 +12,7 @@ from services.emails import send_email, send_reset_email
 from fastapi import HTTPException
 from pydantic import BaseModel
 from itsdangerous import URLSafeTimedSerializer
-from services.emails import manipulate_gmail_adress, custom_verify_email
+from services.emails import custom_verify_email
 import os
 import psycopg.errors
 
@@ -37,11 +37,8 @@ async def register_user(name: str, email: str, pwd: str):
     :param pwd: Pw of the user. Will be salted+hashed before saving it in the database.
     :return: Returns nothing, but might raise exceptions.
     """
-    # TODO: catch non-valid emails and raise exceptions
-    # TODO: look if the email is already in use before sending a confirmation email
     if not custom_verify_email(email):
         raise HTTPException(status_code=400, detail="Invalid email")
-    email = manipulate_gmail_adress(email)
     pwd = hash_and_salt(pwd)
     with connect() as conn:
         with conn.cursor() as cur:
@@ -68,7 +65,6 @@ async def login_user(email: str, pwd: str):
     :param pwd: Non-hashed password of the user
     :return: True if the credentials are correct, false if they are incorrect or the DBMS returns an error
     """
-    email = manipulate_gmail_adress(email)
     # There will be only one result because the mail attribute is the PRIMARY KEY
     res = select_query("SELECT pwd, verified FROM users WHERE mail = %s", (email,))
     if not res:
@@ -121,7 +117,9 @@ async def send_reset_token(email: str):
         with conn.cursor() as cur:
             cur.execute(sql, (email,))
             res = cur.fetchone()
+            logging.debug(res)
     if not res:
+
         return False
 
     token = await generate_reset_token()
