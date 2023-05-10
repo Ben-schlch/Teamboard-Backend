@@ -143,7 +143,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
     :param response:
     :return:
     """
-    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com:443")
     try:
         email = verify_token(token)
     except Exception:
@@ -182,7 +181,6 @@ async def get_token(creds: Credentials, response: Response):
     :param response:
     :return:
     """
-    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     logging.info(f"Trying logging in user {creds.email}")
     try:
         return {"token": await generate_token(**creds.dict())}
@@ -217,7 +215,6 @@ async def confirm(token: str, response: Response):
     :param response:
     :return:
     """
-    response.headers.append("Access-Control-Allow-Origin", "https://www.teabboard.server-welt.com")
     if await confirm_token(token):
         return FileResponse('html/confirm_mail.html')
 
@@ -259,7 +256,7 @@ async def reset_pwd(request: Request, response: Response):
     body = await request.json()
     token = body["token"]
     password = body["password"]
-
+    email = body["email"]
     if await verify_reset_token(email, token):
         if await check_password_complexity(password):
             await reset_password(email, password)
