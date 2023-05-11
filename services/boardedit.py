@@ -1,4 +1,6 @@
 import json
+from typing import List, Dict, Any
+
 import psycopg
 import services.db as db
 import services.positioncalc as positioncalc
@@ -68,7 +70,7 @@ async def subtasklist_helper(state_id: int) -> list:
                         "AND l_neighbor is NULL;"
     sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
                   "WHERE subtask_id = %s;"
-    subtasks = []
+    subtasks: list[dict[str, Any] | dict[str, Any]] = []
     values = (state_id,)
     subtask = db.select_query(sql_first_subtask, values)
     if not subtask:
@@ -76,7 +78,8 @@ async def subtasklist_helper(state_id: int) -> list:
     subtasks.append({"name": subtask[0]["subtask_name"],
                      "description": subtask[0]["description"],
                      "worker": subtask[0]["worker"],
-                     "subtask_id": subtask[0]["subtask_id"]})
+                     "subtask_id": subtask[0]["subtask_id"],
+                     "priority": subtask[0]["priority"]})
     r_neighbor = subtask[0]["r_neighbor"]
     while r_neighbor:
         values = (r_neighbor,)
@@ -86,7 +89,8 @@ async def subtasklist_helper(state_id: int) -> list:
         subtasks.append({"name": subtask[0]["subtask_name"],
                          "description": subtask[0]["description"],
                          "worker": subtask[0]["worker"],
-                         "subtask_id": subtask[0]["subtask_id"]})
+                         "subtask_id": subtask[0]["subtask_id"],
+                         "priority": subtask[0]["priority"]})
         r_neighbor = subtask[0]["r_neighbor"]
     return subtasks
 
