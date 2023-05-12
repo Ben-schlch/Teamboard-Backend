@@ -3,7 +3,6 @@
 
 # Backend
 
-1.
 ## Allgemeine Struktur
 
 Das Backend nutzt Python aufgrund der einfachen und klaren Syntax. Dabei wird auf die Frameworks FastAPi und Uvicorn gesetzt.
