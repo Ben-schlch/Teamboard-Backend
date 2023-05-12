@@ -238,7 +238,7 @@ async def teamboardedit(data):
     :param data: json/dict
     :return: json/dict of the edited teamboard
     """
-    teamboard_id = data["teamboard"]["id"]
+    teamboard_id = data["teamboard_id"]
     sql = 'UPDATE teamboard set teamboard_name = %s WHERE teamboard_id = %s;'
     values = (data["teamboard"]["name"], teamboard_id)
     with db.connect() as con:
