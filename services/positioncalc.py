@@ -179,7 +179,7 @@ async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_positio
                 cur = con.cursor()
                 cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
                             "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
-                            (teamboard_id, task_id, right_neighbor))
+                            (teamboard_id, task_id, column_id, right_neighbor))
                 row = cur.fetchone()
     print(row)
     try:
