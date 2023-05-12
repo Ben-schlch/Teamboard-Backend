@@ -2,6 +2,8 @@ import json
 from typing import List, Dict, Any
 
 import psycopg
+from fastapi import HTTPException
+
 import services.db as db
 import services.positioncalc as positioncalc
 import logging
@@ -65,10 +67,10 @@ async def statelist_helper(task_id: int) -> list:
 
 
 async def subtasklist_helper(state_id: int) -> list:
-    sql_first_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+    sql_first_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker, priority FROM subtask " \
                         "WHERE part_of_column = %s " \
                         "AND l_neighbor is NULL;"
-    sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+    sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker, priority FROM subtask " \
                   "WHERE subtask_id = %s;"
     subtasks: list[dict[str, Any] | dict[str, Any]] = []
     values = (state_id,)
@@ -488,16 +490,19 @@ async def subtaskdelete(data):
     column_id = data["state_id"]
     subtask_id = data["subtask"]["id"]
     with db.connect() as con:
-        cur = con.cursor()
-        sql = "SELECT l_neighbor, r_neighbor FROM subtask " \
-              "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column=%s and subtask_id=%s"
-        cur.execute(query=sql, params=(teamboard_id, task_id, column_id, subtask_id))
-        neighbors = list(cur.fetchone())
-        await positioncalc.subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors)
+        try:
+            cur = con.cursor()
+            sql = "SELECT l_neighbor, r_neighbor FROM subtask " \
+                  "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column=%s and subtask_id=%s"
+            cur.execute(query=sql, params=(teamboard_id, task_id, column_id, subtask_id))
+            neighbors = list(cur.fetchone())
+            await positioncalc.subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors, cur)
 
-        sql = 'DELETE FROM subtask ' \
-              'where part_of_column = %s and part_of_task = %s and part_of_teamboard = %s and subtask_id = %s;'
-        cur.execute(sql, (column_id, task_id, teamboard_id, subtask_id))
+            sql = 'DELETE FROM subtask ' \
+                  'where part_of_column = %s and part_of_task = %s and part_of_teamboard = %s and subtask_id = %s;'
+            cur.execute(sql, (column_id, task_id, teamboard_id, subtask_id))
+        except Exception as e:
+            con.rollback()
     return data
 
 
@@ -515,7 +520,11 @@ async def subtaskmove(data):
     newposition = data["newPosition"]
     between_states = data["type_of_edit"] == "moveSubtaskBetweenStates"
     if not between_states:
-        await positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
+        res = await positioncalc.move_subtask(teamboard_id, task_id, column_id, subtask_id, newposition)
+        if not res:
+            raise HTTPException(status_code=400, detail="Invalid move")
     else:
-        await positioncalc.move_between_states(teamboard_id, task_id, column_id, subtask_id, newposition)
+        res = await positioncalc.move_between_states(teamboard_id, task_id, column_id, subtask_id, newposition)
+        if not res:
+            raise HTTPException(status_code=400, detail="Invalid move")
     return data

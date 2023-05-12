@@ -1,4 +1,5 @@
 from services.db import connect
+from psycopg import Cursor
 
 
 async def column_current_position(teamboard, task_id, column_id):
@@ -132,76 +133,74 @@ async def subtask_current_position(teamboard_id, task_id, column_id, subtask_id)
         return position, neighbors
 
 
-async def subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors):
-    with connect() as con:
-        cur = con.cursor()
-        if neighbors[0] is not None:
-            sql = "UPDATE subtask SET r_neighbor = %s " \
-                  "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s"
-            cur.execute(sql, (neighbors[1], teamboard_id, task_id, column_id, neighbors[0]))
-        if neighbors[1] is not None:
-            cur.execute("UPDATE subtask SET l_neighbor = %s "
-                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
-                        (neighbors[0], teamboard_id, task_id, column_id, neighbors[1]))
+async def subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors, cur: Cursor):
+    if neighbors[0] is not None:
+        sql = "UPDATE subtask SET r_neighbor = %s " \
+              "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s"
+        cur.execute(sql, (neighbors[1], teamboard_id, task_id, column_id, neighbors[0]))
+    if neighbors[1] is not None:
+        cur.execute("UPDATE subtask SET l_neighbor = %s "
+                    "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
+                    (neighbors[0], teamboard_id, task_id, column_id, neighbors[1]))
 
 
 async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_position):
     # Move task to new position and update all involved neighbors
-    old_position, neighbors = await subtask_current_position(teamboard_id, task_id, column_id, subtask_id)
-    print("Oldposition:", old_position, " Neighbors:", neighbors, " Newposition:", new_position)
-    if (new_position == old_position) or (new_position < 0):
-        print("No move possible // already at position?!")
-        return 0
-    # Adjust the neighbors of the task to be moved
-    await subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors)
-
-    row = None
-    if new_position < old_position:
-        # iterate to find position left from itself
-        new_position = old_position - new_position
-        with connect() as con:
-            left_neighbor = neighbors[0]
-            for i in range(new_position):
-                print("Run:", i)
-                cur = con.cursor()
-                cur.execute("SELECT l_neighbor, subtask_id FROM subtask WHERE "
-                            "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
-                            (teamboard_id, task_id, column_id, left_neighbor))
-                row = cur.fetchone()
-                left_neighbor = row[0]
-
-    else:
-        # iterate to find position right from itself
-        new_position = new_position - old_position
-        with connect() as con:
-            right_neighbor = neighbors[1]
-            for i in range(new_position):
-                cur = con.cursor()
-                cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
-                            "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
-                            (teamboard_id, task_id, right_neighbor))
-                row = cur.fetchone()
-    print(row)
-    try:
-        new_right_neighbor = row[1]
-    except TypeError:
-        new_right_neighbor = None
-    try:
-        new_left_neighbor = row[0]
-    except TypeError:
-        new_left_neighbor = None
-
-    print("New right neighbor:", new_right_neighbor, " New left neighbor:", new_left_neighbor)
     with connect() as con:
-        cur = con.cursor()
-        cur.executemany("UPDATE subtask SET r_neighbor = %s "
-                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                        ((subtask_id, teamboard_id, task_id, column_id, new_left_neighbor),
-                         (new_right_neighbor, teamboard_id, task_id, column_id, subtask_id)))
-        cur.executemany("UPDATE subtask SET l_neighbor = %s "
-                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                        ((subtask_id, teamboard_id, task_id, column_id, new_right_neighbor),
-                         (new_left_neighbor, teamboard_id, task_id, column_id, subtask_id)))
+        try:
+            cur = con.cursor()
+            old_position, neighbors = await subtask_current_position(teamboard_id, task_id, column_id, subtask_id)
+            print("Oldposition:", old_position, " Neighbors:", neighbors, " Newposition:", new_position)
+            if (new_position == old_position) or (new_position < 0):
+                print("No move possible // already at position?!")
+                return 0
+            # Adjust the neighbors of the task to be moved
+            await subtask_adjust_old_neighbors(teamboard_id, task_id, column_id, neighbors, cur)
+
+            row = None
+            if new_position < old_position:
+                # iterate to find position left from itself
+                new_position = old_position - new_position
+                left_neighbor = neighbors[0]
+                for i in range(new_position):
+                    print("Run:", i)
+                    cur.execute("SELECT l_neighbor, subtask_id FROM subtask WHERE "
+                                "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
+                                (teamboard_id, task_id, column_id, left_neighbor))
+                    row = cur.fetchone()
+                    left_neighbor = row[0]
+
+            else:
+                # iterate to find position right from itself
+                new_position = new_position - old_position
+                right_neighbor = neighbors[1]
+                for i in range(new_position):
+                    cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
+                                "part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id = %s",
+                                (teamboard_id, task_id, right_neighbor))
+                    row = cur.fetchone()
+            print(row)
+            try:
+                new_right_neighbor = row[1]
+            except TypeError:
+                new_right_neighbor = None
+            try:
+                new_left_neighbor = row[0]
+            except TypeError:
+                new_left_neighbor = None
+
+            print("New right neighbor:", new_right_neighbor, " New left neighbor:", new_left_neighbor)
+            cur.executemany("UPDATE subtask SET r_neighbor = %s "
+                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                            ((subtask_id, teamboard_id, task_id, column_id, new_left_neighbor),
+                             (new_right_neighbor, teamboard_id, task_id, column_id, subtask_id)))
+            cur.executemany("UPDATE subtask SET l_neighbor = %s "
+                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                            ((subtask_id, teamboard_id, task_id, column_id, new_right_neighbor),
+                             (new_left_neighbor, teamboard_id, task_id, column_id, subtask_id)))
+            con.commit()
+        except:
+            con.rollback()
     return 1
 
 
@@ -209,45 +208,48 @@ async def move_between_states(teamboard_id, task_id, column_id, subtask_id, new_
     # get the old column id and check if subtask exists in teamboard
     old_column_id = None
     with connect() as con:
-        cur = con.cursor()
-        cur.execute("SELECT part_of_column FROM subtask WHERE "
-                    "part_of_teamboard=%s AND part_of_task=%s AND subtask_id=%s", (teamboard_id, task_id, subtask_id,))
-        old_column_id = cur.fetchone()[0]
-    if old_column_id is None:
-        return 0
-    # get the old position and the neighbors of the subtask
-    old_position, neighbors = await subtask_current_position(teamboard_id, task_id, old_column_id, subtask_id)
-    await subtask_adjust_old_neighbors(teamboard_id, task_id, old_column_id, neighbors)
-    with connect() as con:
-        # get the first subtask of the list
-        cur = con.cursor()
-        cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
-                    "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND l_neighbor is NULL",
-                    (teamboard_id, task_id, column_id,))
-        row = cur.fetchone()
-        left_neighbor, right_neighbor = row if row else (None, None)
-        if not row:
-            new_position = 0
-        # iterate until finding the position
-        for i in range(1, new_position):
+        try:
+            cur = con.cursor()
+            cur.execute("SELECT part_of_column FROM subtask WHERE "
+                        "part_of_teamboard=%s AND part_of_task=%s AND subtask_id=%s", (teamboard_id, task_id, subtask_id,))
+            old_column_id = cur.fetchone()[0]
+            if old_column_id is None or old_column_id == column_id:
+                raise Exception("Old Column ID is None or equal to new column ID")
+            # get the old position and the neighbors of the subtask
+            old_position, neighbors = await subtask_current_position(teamboard_id, task_id, old_column_id, subtask_id)
+            await subtask_adjust_old_neighbors(teamboard_id, task_id, old_column_id, neighbors, cur)
+            # get the first subtask of the list
             cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
-                        "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND subtask_id = %s",
-                        (teamboard_id, task_id, column_id, right_neighbor))
+                        "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND l_neighbor is NULL",
+                        (teamboard_id, task_id, column_id,))
             row = cur.fetchone()
             left_neighbor, right_neighbor = row if row else (None, None)
-            if i < new_position - 1 and right_neighbor is None:
-                return 0
+            if not row:
+                new_position = 0
+            # iterate until finding the position
+            for i in range(1, new_position):
+                cur.execute("SELECT subtask_id, r_neighbor FROM subtask WHERE "
+                            "part_of_teamboard = %s AND part_of_task = %s AND part_of_column = %s AND subtask_id = %s",
+                            (teamboard_id, task_id, column_id, right_neighbor))
+                row = cur.fetchone()
+                left_neighbor, right_neighbor = row if row else (None, None)
+                if i < new_position - 1 and right_neighbor is None:
+                    raise Exception("Position not found")
 
-        cur.execute("UPDATE subtask SET l_neighbor = %s, r_neighbor = %s, part_of_column = %s "
-                    "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                    (left_neighbor, right_neighbor, column_id, teamboard_id, task_id, old_column_id, subtask_id))
-        # update the neighbors of the subtask
-        if left_neighbor:
-            cur.execute("UPDATE subtask SET r_neighbor = %s "
+            cur.execute("UPDATE subtask SET l_neighbor = %s, r_neighbor = %s, part_of_column = %s "
                         "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                        (subtask_id, teamboard_id, task_id, column_id, left_neighbor))
-        if right_neighbor:
-            cur.execute("UPDATE subtask SET l_neighbor = %s "
-                        "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
-                        (subtask_id, teamboard_id, task_id, column_id, right_neighbor))
+                        (left_neighbor, right_neighbor, column_id, teamboard_id, task_id, old_column_id, subtask_id))
+            # update the neighbors of the subtask
+            if left_neighbor:
+                cur.execute("UPDATE subtask SET r_neighbor = %s "
+                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                            (subtask_id, teamboard_id, task_id, column_id, left_neighbor))
+            if right_neighbor:
+                cur.execute("UPDATE subtask SET l_neighbor = %s "
+                            "WHERE part_of_teamboard=%s and part_of_task=%s and part_of_column = %s and subtask_id=%s;",
+                            (subtask_id, teamboard_id, task_id, column_id, right_neighbor))
+            con.commit()
+        except:
+            con.rollback()
+            return 0
     return 1

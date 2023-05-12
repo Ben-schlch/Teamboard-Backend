@@ -17,38 +17,6 @@ def connect(row_factory=tuple_row):
     return conn
 
 
-def insert_query(sql: str, params: tuple[any, ...]) -> int:
-    """
-    Function that executes an insert query on the teamboard database.
-    :param sql: sql-query
-    :param params: Parameters for the query
-    """
-
-    try:
-        with connect() as con:
-            cur = con.cursor()
-            cur.execute(sql, params)
-    except psycopg.DatabaseError as err:
-        return int(err.sqlstate)
-    return 0
-
-#
-# def arbitrary_query(sql: str) -> int:
-#     """
-#     Function that executes an arbitrary query. Should be used, if the other functions are too limiting.
-#     :param sql: sql-query
-#     :return: 0 if successful, error code if not successful
-#     """
-#     sql_query = "%s;"
-#     try:
-#         with connect() as con:
-#             cur = con.cursor()
-#             cur.execute(sql, [sql_query])
-#     except psycopg.Error as err:
-#         return int(err.pgcode)
-#     return 0
-
-
 def select_query(sql: str, params: tuple) -> int or list[dict[str, any]]:
     """
     Function that executes a select query on the database.
