@@ -201,6 +201,7 @@ async def move_subtask(teamboard_id, task_id, column_id, subtask_id, new_positio
             con.commit()
         except:
             con.rollback()
+            raise Exception("Error while moving subtask")
     return 1
 
 

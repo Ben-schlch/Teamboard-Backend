@@ -409,40 +409,44 @@ async def subtaskcreate(data):
     }
     max_columns.update(data["subtask"])
     with db.connect() as con:
-        cur = con.cursor()
-        sql = 'SELECT subtask_id FROM subtask WHERE part_of_teamboard=%s ' \
-              'AND part_of_task=%s and part_of_column=%s and r_neighbor IS NULL;'
-        values = (data["teamboard_id"], data["task_id"], data["state_id"])
-        cur.execute(sql, values)
-        l_neighbor = cur.fetchone()
-        if l_neighbor is None:
-            l_neighbor = None
-        else:
-            l_neighbor = l_neighbor[0]
-
-        if not max_columns["worker"]:
-            max_columns = None
-
-        if max_columns["deadline"] == "":
-            max_columns["deadline"] = None
-
-        sql = "INSERT INTO subtask " \
-              "(part_of_teamboard, part_of_task, part_of_column, " \
-              "subtask_name, deadline, color, description, worker, l_neighbor) " \
-              "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s ) RETURNING subtask_id;"
-        values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"],
-                  max_columns["deadline"],
-                  max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
-        cur.execute(sql, values)
-        subtask_id = cur.fetchone()[0]
-        if l_neighbor:
-            sql = 'UPDATE subtask SET r_neighbor = %s ' \
-                  'Where part_of_teamboard=%s AND part_of_task=%s ' \
-                  'and part_of_column=%s and subtask_id= %s;'
-            values = (subtask_id, data["teamboard_id"], data["task_id"], data["state_id"], l_neighbor)
+        try:
+            cur = con.cursor()
+            sql = 'SELECT subtask_id FROM subtask WHERE part_of_teamboard=%s ' \
+                  'AND part_of_task=%s and part_of_column=%s and r_neighbor IS NULL;'
+            values = (data["teamboard_id"], data["task_id"], data["state_id"])
             cur.execute(sql, values)
-        print("Test: ID: ", subtask_id)
-        data["subtask"]["id"] = subtask_id
+            l_neighbor = cur.fetchone()
+            if l_neighbor is None:
+                l_neighbor = None
+            else:
+                l_neighbor = l_neighbor[0]
+
+            if not max_columns["worker"]:
+                max_columns = None
+
+            if max_columns["deadline"] == "":
+                max_columns["deadline"] = None
+
+            sql = "INSERT INTO subtask " \
+                  "(part_of_teamboard, part_of_task, part_of_column, " \
+                  "subtask_name, deadline, color, description, worker, l_neighbor) " \
+                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s ) RETURNING subtask_id;"
+            values = (data["teamboard_id"], data["task_id"], data["state_id"], max_columns["name"],
+                      max_columns["deadline"],
+                      max_columns["color"], max_columns["description"], max_columns["worker"], l_neighbor)
+            cur.execute(sql, values)
+            subtask_id = cur.fetchone()[0]
+            if l_neighbor:
+                sql = 'UPDATE subtask SET r_neighbor = %s ' \
+                      'Where part_of_teamboard=%s AND part_of_task=%s ' \
+                      'and part_of_column=%s and subtask_id= %s;'
+                values = (subtask_id, data["teamboard_id"], data["task_id"], data["state_id"], l_neighbor)
+                cur.execute(sql, values)
+            print("Test: ID: ", subtask_id)
+            data["subtask"]["id"] = subtask_id
+        except:
+            con.rollback()
+            raise HTTPException(status_code=500, detail="Error while creating subtask")
     return data
 
 
