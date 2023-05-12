@@ -65,10 +65,10 @@ async def statelist_helper(task_id: int) -> list:
 
 
 async def subtasklist_helper(state_id: int) -> list:
-    sql_first_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+    sql_first_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker, priority FROM subtask " \
                         "WHERE part_of_column = %s " \
                         "AND l_neighbor is NULL;"
-    sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker FROM subtask " \
+    sql_subtask = "SELECT subtask_name, subtask_id, r_neighbor, description, worker, priority FROM subtask " \
                   "WHERE subtask_id = %s;"
     subtasks: list[dict[str, Any] | dict[str, Any]] = []
     values = (state_id,)
