@@ -214,7 +214,7 @@ async def teamboarddelete(data, manager):
     sql = 'SELECT Count(1) from teamboard where teamboard_id = %s;'
     with db.connect() as con:
         cur = con.cursor()
-        teamboard = data["teamboard_id"]
+        teamboard = data["teamboard"]["id"]
         cur.execute(sql, (teamboard,))
         exists = cur.fetchone()[0]
         exists = exists > 0
