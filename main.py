@@ -46,7 +46,7 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     await boardedit.teamboardcreate(data, email)
                 case "boarddelete":
                     await boardedit.teamboarddelete(data, manager)
-                case "boardedit":
+                case "teamboardchangeBoardName":
                     await boardedit.teamboardedit(data)
                 case "taskdelete":
                     await boardedit.taskdelete(data)
