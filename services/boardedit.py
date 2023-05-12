@@ -240,7 +240,7 @@ async def teamboardedit(data):
     """
     teamboard_id = data["teamboard_id"]
     sql = 'UPDATE teamboard set teamboard_name = %s WHERE teamboard_id = %s;'
-    values = (data["teamboard"]["name"], teamboard_id)
+    values = (data["name_new"], teamboard_id)
     with db.connect() as con:
         cur = con.cursor()
         cur.execute(sql, values)
