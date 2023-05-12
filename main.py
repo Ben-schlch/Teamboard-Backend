@@ -80,10 +80,10 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                         websocket_added = \
                             [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
                         await manager.send_personal_message(json.dumps(data), websocket_added)
-                        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+                        # await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
                     except IndexError:
                         logging.info("User who was added is not online")
-                        await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
+                        # await manager.send_personal_message(f"404 {kind_of_object} {type_of_edit}", websocket)
                     return
                 case "teamboarddeleteUser":
                     result = await boardedit.teamboarddeleteuser(data)
@@ -94,10 +94,10 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                             websocket_deleted = \
                                 [result[0] for result in manager.active_connections if result[1] == data["email"]][0]
                             await manager.send_personal_message(json.dumps(data), websocket_deleted)
-                            await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+                            # await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
                         except IndexError:
                             logging.info("User who was deleted is not online")
-                            await manager.send_personal_message(f"400 with {kind_of_object} {type_of_edit}", websocket)
+                            # await manager.send_personal_message(f"400 with {kind_of_object} {type_of_edit}", websocket)
                         return
                 case _:
                     raise HTTPException(status_code=404, detail=f"400 with {kind_of_object} {type_of_edit}")
@@ -113,16 +113,16 @@ async def parse_message(websocket: WebSocket, data: dict, email: str):
                     raise HTTPException(status_code=404,
                                         detail=f"404 No editor: {kind_of_object} {type_of_edit} unauthorized")
     except HTTPException as e:
-        await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
+        # await manager.send_personal_message(f"400 HTTPExceptiom {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
     except psycopg.Error as e:
-        await manager.send_personal_message(f"400 psycopg.Error {kind_of_object} {type_of_edit}", websocket)
+        # await manager.send_personal_message(f"400 psycopg.Error {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
     except Exception as e:
-        await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
+        # await manager.send_personal_message(f"400 {kind_of_object} {type_of_edit}", websocket)
         logging.error(type(e), e)
     else:
-        await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
+        # await manager.send_personal_message(f"200 {kind_of_object} {type_of_edit}", websocket)
         jsoned = json.dumps(data)
         boardid = data.get("teamboard", {}).get("id") or data.get("teamboard_id")
         await manager.broadcast(teamboard=boardid, message=jsoned)
@@ -151,7 +151,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
         # Handle WebSocket connection
         await manager.connect(websocket, email)
         logging.info(f"Client #{email} connected")
-        await websocket.send_text(f"200")
+        # await websocket.send_text(f"200")
         try:
             while True:
                 data = await websocket.receive_text()
@@ -161,10 +161,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str, response: Respons
                     await parse_message(websocket, data, email)
                 except json.JSONDecodeError as e:
                     logging.info(f"JSON Decode Error {e}")
-                    await manager.send_personal_message(f"400 JSONDecodeError", websocket)
+                    # await manager.send_personal_message(f"400 JSONDecodeError", websocket)
                 except Exception as e:
                     logging.info(f"400 Error with {websocket}: {type(e)}: {str(e)}")
-                    await manager.send_personal_message(f"400 Error Parsemessage", websocket)
+                    # await manager.send_personal_message(f"400 Error Parsemessage", websocket)
                 # await manager.send_personal_message(f"You wrote: {data}", websocket)
                 # await manager.broadcast(f"Client #{email} says: {data}")
         except WebSocketDisconnect:
